@@ -13,24 +13,24 @@ Inspiration Pad Pro development stopped with IPP 3.0 nearly a decade ago, leavin
 This Python script would like to eventually become the stand-in for Inspiration Pad Pro 4.0, but there's still a long way to go... Here's the timeline.
 
 ## TIMELINE
-1. Create window that allows editing and generation to happen at the same time
-1. Read existing IPP script files
-1. Saving/loading
+1. Create window that allows editing and generation to happen at the same time [COMPLETE]
+1. Read existing IPP script files [COMPLETE]
+1. Saving/loading [COMPLETE]
 
 ## Future Goals
 - Choose what Table to start generation on (not just the first table like IPP 3) [COMPLETE!!]
 - Add new logic syntax to IPP for better and easier random scripts
- - Change sub-table pick syntax from [|option1|option2] to [|option1|option2|]
- - Add a/an English logic
+  - Change sub-table pick syntax from [|option1|option2] to [|option1|option2|]
+  - Add a/an English logic
 - Sub-table Interactive Rerolls (click on a particular part of the output to reroll just that section.) [COMPLICATED!]
 - Add HTML support
- - Table Output
- - Images
- - CSS Support?
+  - Table Output
+  - Images
+  - CSS Support?
 - Export Options
- - Export to Printer
- - Export to PNG
- - Export to PDF
+  - Export to Printer
+  - Export to PNG
+  - Export to PDF
 
 ## Current Development Screenshots
 ![Screenshot 1](https://i.imgur.com/q6DY74H.png "Screenshot 1")
