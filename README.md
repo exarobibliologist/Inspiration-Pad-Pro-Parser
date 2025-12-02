@@ -40,7 +40,7 @@ This Python script would like to eventually become the stand-in for Inspiration 
   - Export to PDF
 
 ## Current Development Screenshots
-![Screenshot 1](https://i.imgur.com/q6DY74H.png "Screenshot 1")
+![Imgur](https://imgur.com/FbjUPNH.png)
 The current editing window allows for seamless script design and generation side-by-side. There is no need to save in-between editing and generating. You only need to save when you are happy with the script. Save files are in .txt format.
-![Screenshot 1](https://i.imgur.com/rGyUFKm.png "Screenshot 1")
+![Imgur](https://imgur.com/3WmGST2.png)
 Using the drop-down menu at the top, you can select which Table in the script to run from. The program defaults to the first table on load, but you can manually run the program at any of the available tables in the script. Use the Scan/Refresh button to update the dropdown menu if you add more tables to the script editor and it doesn't immediately show them in the menu.
