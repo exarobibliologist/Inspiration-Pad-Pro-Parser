@@ -14,22 +14,22 @@ This Python script would like to eventually become the stand-in for Inspiration 
 
 ## TIMELINE
 ### Tasks Complete
-- Create window that allows editing and generation to happen at the same time [COMPLETE]
-- Read existing IPP script files [COMPLETE]
-- Saving/loading [COMPLETE]
-- Zebra-striped lines for easy reading [COMPLETE]
-- Support for numerical ranges without needing dice rolls [COMPLETE]
+- Create window that allows editing and generation to happen at the same time
+- Choose what Table to start generation on (not just the first table like IPP 3)
+- Read existing IPP script files
+- Saving/loading
+- Zebra-striped lines for easy reading
+- Support for numerical ranges without needing dice rolls
+- Change sub-table pick syntax from [|option1|option2] to [|option1|option2|]
 
 ### Mostly Complete
 1. Support for floating-point and integer math [MOSTLY COMPLETE]
-1. Change sub-table pick syntax from [|option1|option2] to [|option1|option2|]
 
 ### Future Goals
-- Choose what Table to start generation on (not just the first table like IPP 3) [COMPLETE!!]
 - Add new logic syntax to IPP for better and easier random scripts
-  - Change sub-table pick syntax from [|option1|option2] to [|option1|option2|]
+  - Add multiple tables picks using @ and ! as modifiers
   - Add a/an English logic
-- Sub-table Interactive Rerolls (click on a particular part of the output to reroll just that section.) [COMPLICATED!]
+- Sub-table Interactive Rerolls (click on a particular part of the output to reroll just that section.)
 - Add HTML support
   - Table Output
   - Images
