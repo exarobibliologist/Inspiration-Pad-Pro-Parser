@@ -6,8 +6,12 @@ import re
 class IPPInterpreter:
     def __init__(self, root):
         self.root = root
-        self.root.title("Inspiration Pad Pro Interpreter (Extended)")
+        self.root.title("Inspiration Pad Pro (Extended)")
         self.root.geometry("1000x700")
+
+        # Define colors requested by the user
+        self.COLOR_ODD = "#EEEEEE" # White
+        self.COLOR_EVEN = "#CCCCCC" # Gray
 
         # --- Menu Bar (File I/O) ---
         self.create_menu()
@@ -31,8 +35,18 @@ class IPPInterpreter:
 
         # --- Left Widgets (Editor) ---
         tk.Label(left_frame, text="Script Editor", font=("Arial", 11, "bold")).pack(anchor="w")
-        self.input_text = tk.Text(left_frame, width=40, height=30, wrap=tk.WORD, undo=True)
+        # High-contrast selection settings
+        self.input_text = tk.Text(left_frame, width=40, height=30, wrap=tk.WORD, undo=True, bg=self.COLOR_ODD, 
+                                  selectbackground="#007ACC", selectforeground="#FFFFFF")
         self.input_text.pack(fill=tk.BOTH, expand=True)
+
+        # Configure the 'even_line' tag for line shading on input
+        self.input_text.tag_configure("even_line", background=self.COLOR_EVEN)
+        
+        # Bind events to automatically update shading whenever text changes
+        # Use a lambda to pass the widget reference to the shading function
+        self.input_text.bind("<KeyRelease>", lambda e: self.apply_shading(self.input_text))
+        self.input_text.bind("<ButtonRelease>", lambda e: self.apply_shading(self.input_text))
 
         # --- Center Widgets (Controls) ---
         
@@ -45,7 +59,7 @@ class IPPInterpreter:
         self.refresh_btn = tk.Button(control_frame, text="Scan/Refresh Tables", command=self.refresh_table_list)
         self.refresh_btn.pack(pady=5)
         
-        # New: Run Count Input
+        # Run Count Input
         tk.Label(control_frame, text="Run X Times:", font=("Arial", 9)).pack(pady=(20, 5))
         self.run_count_entry = tk.Entry(control_frame, width=8, justify='center')
         self.run_count_entry.insert(0, "5") # Default value
@@ -61,12 +75,18 @@ class IPPInterpreter:
 
         # --- Right Widgets (Output) ---
         tk.Label(right_frame, text="Output", font=("Arial", 11, "bold")).pack(anchor="w")
-        self.output_text = tk.Text(right_frame, width=40, height=30, wrap=tk.WORD, bg="#f0f0f0")
+        # Set default background to COLOR_ODD for odd lines
+        # High-contrast selection settings
+        self.output_text = tk.Text(right_frame, width=40, height=30, wrap=tk.WORD, bg=self.COLOR_ODD,
+                                   selectbackground="#007ACC", selectforeground="#FFFFFF")
         self.output_text.pack(fill=tk.BOTH, expand=True)
+        # Configure the 'even_line' tag for line shading on output
+        self.output_text.tag_configure("even_line", background=self.COLOR_EVEN)
 
         # --- Initial Data ---
         self.load_sample_script()
         self.refresh_table_list() # Populate dropdown initially
+        self.apply_shading(self.input_text) # Apply initial shading to input
 
     def create_menu(self):
         menubar = tk.Menu(self.root)
@@ -79,22 +99,92 @@ class IPPInterpreter:
         self.root.config(menu=menubar)
 
     def load_sample_script(self):
-        sample = """Table: MasterTable
-You encounter: [@Encounter]
-Loot found: {1d4} gold pieces.
-Mood: [|Happy|Sad|Angry|Confused|]
+        sample = """Table: MasterPrompt
+This is a table
+Each line on this table is one part of a random list.
+10: This line is weighted to show up more times in the list
+{1d100} is an example of dice notation
+{1d100+10} is an example of using addition with dice notation
+{1d100-10} is an example of using subtraction with dice notation
+{1d100*10} is an example of using multiplication with dice notation
+{1d100/3} is an example of using floating-point division with dice notation
+{1d100//3} is an example of using integer division with dice notation
+{42-69} will pick a number between this range
+You can nest [|random|interesting|odd|cool|] things in a list to increase the randomness
+100: Use this to call a table - [@Encounter]
 
 Table: Encounter
-5: A group of {1d6} [@Humanoid]s
-2: A solitary [@Humanoid]
-A trap! (DC {1d20+5} to spot)
+A group of {1d10+10} [|Happy|Sad|Angry|Confused|] [@Humanoid]s - On win, Loot found: [@LootGen].
+A solitary [@Humanoid] - On win, Loot found: [@LootGen]
+A trap! (DC {1d10+15} to spot)
 
 Table: Humanoid
 Goblin
 Kobold
 Orc
-Gnoll"""
+Gnoll
+
+Table: LootGen
+{314-1565} gold pieces
+a wine skin [|(full of wine)|(full of hard liquor)|(empty)|(water)|]
+a bottle of hard liquor
+a bottle of [|fine|awful|] [|wine|beer|mead|]
+a small pouch of black lotus extract (about {1d100}% of the pouch is left)
+a religious [|medallion|icon|] worth ({1d10*10} sp)
+a lock of [|brunette|blonde|red|] hair
+a [|gold|silver|copper|steel|] [|ring|nose ring|neck chain|] with small {1d4*10}sp gem
+a feather from an exotic bird
+a [|squirrel|rabbit|racoon|jaguar|lion|tiger|] pelt
+a fishing hook and line
+a fishing net
+a bottle of ink ({1d100}% left) and quill
+{1d3+1} sticks of chalk
+a pair of manacles
+a spade
+[|a sewing needle|a sewing needle and some thread|]
+a {2d10+10} ft [|chain|silk rope|linen rope|]
+a small vial [|(empty)|(poison DC {1d10+10})|(sleeping draught)|(hallucinogen)|(unknown)|]
+a small [|leather|cloth|] bag with [|dice|figurine|] game
+playing cards
+a small [|leather|cloth|] bag of herbs ([|poison DC {1d6+9}|sleeping aid|hallucinogen|unknown|healing|stimulant|medicinal|])
+a [|small|large|] bag of [|nuts and raisins|vegetables|jerky|grain|hard candy|stones|seashells|]
+a [|small|large|] bag of [|dead|live] [|wasps|beetles|scorpions|spiders|ants|mice|]
+a hunting knife
+a whistle
+a drum
+a flute
+a metal cup
+a block of wax
+{5-42} candles]
+a list of names [|(some of them crossed off)|(and amounts owed)|]
+some dirty sketches
+a [|clay|stone|brass|silver|gold|] figurine of a [|man|woman|horse|dragon|dog|lion|bird|phallic symbol|]
+"""
         self.input_text.insert(tk.END, sample)
+
+    # --- Line Shading Logic (Reusable) ---
+    def apply_shading(self, text_widget):
+        """Applies alternating background colors to lines in the given text widget, 
+        making the background span the full width."""
+        
+        # 1. Remove all existing 'even_line' tags
+        text_widget.tag_remove("even_line", "1.0", "end")
+
+        # 2. Find the total number of lines
+        # 'end-1c' gets the index of the last character
+        last_index = text_widget.index("end-1c")
+        # 'index("end").split(".")[0]' gets the line number of the last line
+        num_lines = int(last_index.split('.')[0])
+        
+        # 3. Loop through lines and apply shading
+        for i in range(1, num_lines + 1):
+            if i % 2 == 0: # Check if the line number is even
+                start_index = f"{i}.0"
+                # CRITICAL FIX: Add " + 1c" to the end index to force the tag to the end 
+                # of the line in the widget, even if the line is short.
+                end_index = f"{i}.end" + " + 1c"
+                text_widget.tag_add("even_line", start_index, end_index)
+
 
     # --- File Operations ---
 
@@ -107,6 +197,7 @@ Gnoll"""
                 self.input_text.delete("1.0", tk.END)
                 self.input_text.insert(tk.END, content)
                 self.refresh_table_list()
+                self.apply_shading(self.input_text) # Apply shading after loading content
             except Exception as e:
                 messagebox.showerror("Error", f"Could not read file: {e}")
 
@@ -174,21 +265,77 @@ Gnoll"""
 
     def roll_dice(self, text):
         """
-        Finds patterns like {1d6} or {1d20+5} and replaces them with rolled numbers.
+        Finds and resolves dice roll patterns ({XdY[+/-/*//]Z}) and range patterns ({Min-Max}).
         """
-        # Pattern matches: { (number) d (number) (optional +/- number) }
-        pattern = r"\{(\d+)d(\d+)([+-]\d+)?\}"
         
-        def replace_match(match):
+        # 1. Resolve standard Dice patterns: {XdY[+/-/*]Z} or {XdY[/|//]Z}
+        # The regex now uses a non-capturing group (?:...) to allow for the operator
+        # to be one character (+, -, *, /) or two characters (//).
+        dice_pattern = r"\{(\d+)d(\d+)(?:([\+\-\*]|//|\/)\s*(\d+))?\}" 
+        
+        def replace_dice_match(match):
             count = int(match.group(1))
             sides = int(match.group(2))
-            modifier = int(match.group(3)) if match.group(3) else 0
             
-            total = sum(random.randint(1, sides) for _ in range(count)) + modifier
+            # The operator is now group 3, the value is group 4
+            operator = match.group(3)
+            value_str = match.group(4)
+            
+            total = sum(random.randint(1, sides) for _ in range(count)) 
+            
+            if operator and value_str:
+                try:
+                    value = int(value_str)
+                except ValueError:
+                    # Should not happen with the regex, but good practice
+                    return f"[ERROR: Invalid modifier value {value_str}]"
+
+                if operator == '+':
+                    total += value
+                elif operator == '-':
+                    total -= value
+                elif operator == '*':
+                    total *= value
+                elif operator == '//':
+                    # Integer Division (Floor Division)
+                    if value == 0:
+                        return f"[DIVIDE BY ZERO ERROR: {match.group(0)}]"
+                    total //= value
+                elif operator == '/':
+                    # Floating Point Division (Precise)
+                    if value == 0:
+                        return f"[DIVIDE BY ZERO ERROR: {match.group(0)}]"
+                    
+                    # Ensure floating-point calculation
+                    result_float = float(total) / value
+                    # Return formatted string with precision
+                    return f"{result_float:.6f}"
+                
+            # If the result is an integer (from dice roll, +, -, *, //), return it as a string
             return str(total)
 
-        # Keep replacing until no dice codes remain (though usually one pass is enough)
-        return re.sub(pattern, replace_match, text)
+        # Apply dice rolling
+        text = re.sub(dice_pattern, replace_dice_match, text)
+
+        # 2. Resolve Range patterns: {Min-Max}
+        # Pattern matches: { (number) - (number) }
+        range_pattern = r"\{(\d+)-(\d+)\}"
+        
+        def replace_range_match(match):
+            min_val = int(match.group(1))
+            max_val = int(match.group(2))
+            
+            # Simple error check for invalid range
+            if min_val > max_val:
+                return f"[{min_val}-{max_val} ERROR: Min > Max]"
+            
+            result = random.randint(min_val, max_val) # randint is inclusive
+            return str(result)
+        
+        # Apply range rolling
+        text = re.sub(range_pattern, replace_range_match, text)
+        
+        return text
 
     def roll_on_table(self, table_name, tables):
         if table_name not in tables:
@@ -236,7 +383,7 @@ Gnoll"""
             if not found_action:
                 break
 
-        # 3. Resolve Dice {1d6} - We do this AFTER tables, so tables can contain dice
+        # 3. Resolve Dice {1d6} and Ranges {Min-Max}
         text = self.roll_dice(text)
         
         return text
@@ -262,7 +409,11 @@ Gnoll"""
         # Get selected table
         start_table = self.table_selector.get()
         if not start_table or start_table not in tables:
-            start_table = list(tables.keys())[0]
+            if tables:
+                start_table = list(tables.keys())[0]
+            else:
+                messagebox.showinfo("Info", "No tables found to run.")
+                return
 
         output_lines = []
         # Use num_runs for the loop count
@@ -273,9 +424,14 @@ Gnoll"""
 
         self.output_text.delete("1.0", tk.END)
         self.output_text.insert(tk.END, "\n".join(output_lines))
+        
+        # Apply shading to the output text after generation
+        self.apply_shading(self.output_text)
 
     def clear_output(self):
         self.output_text.delete("1.0", tk.END)
+        # Re-apply shading after clearing (will just set the background of the remaining empty line)
+        self.apply_shading(self.output_text)
 
 if __name__ == "__main__":
     root = tk.Tk()

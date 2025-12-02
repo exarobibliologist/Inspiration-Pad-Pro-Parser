@@ -13,11 +13,18 @@ Inspiration Pad Pro development stopped with IPP 3.0 nearly a decade ago, leavin
 This Python script would like to eventually become the stand-in for Inspiration Pad Pro 4.0, but there's still a long way to go... Here's the timeline.
 
 ## TIMELINE
-1. Create window that allows editing and generation to happen at the same time [COMPLETE]
-1. Read existing IPP script files [COMPLETE]
-1. Saving/loading [COMPLETE]
+### Tasks Complete
+- Create window that allows editing and generation to happen at the same time [COMPLETE]
+- Read existing IPP script files [COMPLETE]
+- Saving/loading [COMPLETE]
+- Zebra-striped lines for easy reading [COMPLETE]
+- Support for numerical ranges without needing dice rolls [COMPLETE]
 
-## Future Goals
+### Mostly Complete
+1. Support for floating-point and integer math [MOSTLY COMPLETE]
+1. Change sub-table pick syntax from [|option1|option2] to [|option1|option2|]
+
+### Future Goals
 - Choose what Table to start generation on (not just the first table like IPP 3) [COMPLETE!!]
 - Add new logic syntax to IPP for better and easier random scripts
   - Change sub-table pick syntax from [|option1|option2] to [|option1|option2|]
