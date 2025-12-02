@@ -148,7 +148,7 @@ a small [|leather|cloth|] bag with [|dice|figurine|] game
 playing cards
 a small [|leather|cloth|] bag of herbs ([|poison DC {1d6+9}|sleeping aid|hallucinogen|unknown|healing|stimulant|medicinal|])
 a [|small|large|] bag of [|nuts and raisins|vegetables|jerky|grain|hard candy|stones|seashells|]
-a [|small|large|] bag of [|dead|live] [|wasps|beetles|scorpions|spiders|ants|mice|]
+a [|small|large|] bag of [|dead|live|] [|wasps|beetles|scorpions|spiders|ants|mice|]
 a hunting knife
 a whistle
 a drum
