@@ -21,13 +21,15 @@ This Python script would like to eventually become the stand-in for Inspiration 
 - Zebra-striped lines for easy reading
 - Support for numerical ranges without needing dice rolls
 - Change sub-table pick syntax from [|option1|option2] to [|option1|option2|]
+- Added multiple table picks using @ followed by a number, as in [@5 table]
+- Added clear seperation lines between generations in the Output Pane
 
 ### Mostly Complete
 1. Support for floating-point and integer math [MOSTLY COMPLETE]
 
 ### Future Goals
 - Add new logic syntax to IPP for better and easier random scripts
-  - Add multiple tables picks using @ and ! as modifiers
+  - Add multiple tables picks ! as modifiers
   - Add a/an English logic
 - Sub-table Interactive Rerolls (click on a particular part of the output to reroll just that section.)
 - Add HTML support
@@ -40,7 +42,7 @@ This Python script would like to eventually become the stand-in for Inspiration 
   - Export to PDF
 
 ## Current Development Screenshots
-![Imgur](https://imgur.com/FbjUPNH.png)
+![Imgur](https://imgur.com/WVnWNea.png)
 The current editing window allows for seamless script design and generation side-by-side. There is no need to save in-between editing and generating. You only need to save when you are happy with the script. Save files are in .txt format.
-![Imgur](https://imgur.com/3WmGST2.png)
+![Imgur](https://imgur.com/EpcKsa7.png)
 Using the drop-down menu at the top, you can select which Table in the script to run from. The program defaults to the first table on load, but you can manually run the program at any of the available tables in the script. Use the Scan/Refresh button to update the dropdown menu if you add more tables to the script editor and it doesn't immediately show them in the menu.
