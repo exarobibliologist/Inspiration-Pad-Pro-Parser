@@ -25,7 +25,9 @@ This Python script would like to eventually become the stand-in for Inspiration 
 - Added clear seperation lines between generations in the Output Pane
 
 ### Mostly Complete
-1. Support for floating-point and integer math [MOSTLY COMPLETE]
+- Support for floating-point and integer math [currently works in conjunction to dice rolls only]
+- Simple HTML Support (this turned out a lot more complicated than I originally anticipated) [simple HTML h1,h2,h3,b,i,u,p,br,hr,li are working]
+
 
 ### Future Goals
 - Add new logic syntax to IPP for better and easier random scripts
