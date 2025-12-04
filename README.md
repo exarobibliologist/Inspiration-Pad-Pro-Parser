@@ -23,6 +23,7 @@ This Python script would like to eventually become the stand-in for Inspiration 
 - Change sub-table pick syntax from [|option1|option2] to [|option1|option2|]
 - Added multiple table picks using @ followed by a number, as in [@5 table]
 - Added clear seperation lines between generations in the Output Pane
+- Implode function to separate multiple generations of a table
 
 ### Mostly Complete
 - Support for floating-point and integer math [currently works in conjunction to dice rolls only]
@@ -30,6 +31,7 @@ This Python script would like to eventually become the stand-in for Inspiration 
 
 
 ### Future Goals
+- Text options for upper, lower, and proper
 - Add new logic syntax to IPP for better and easier random scripts
   - Add multiple tables picks ! as modifiers
   - Add a/an English logic
