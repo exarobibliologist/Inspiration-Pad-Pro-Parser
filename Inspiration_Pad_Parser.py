@@ -7,7 +7,9 @@ class IPPInterpreter:
     def __init__(self, root):
         self.root = root
         self.root.title("Inspiration Pad Pro Parser (HTML Extended)")
-        self.root.state('zoomed')
+        
+        # Maximize the window on startup
+        self.root.state('zoomed') 
 
         # Define colors requested by the user
         self.COLOR_ODD = "#FFFFFF" # White
@@ -115,9 +117,10 @@ class IPPInterpreter:
 ##Example of Division (Integer) in Loot: {1d100//3} gold pieces.
 ##Example of In-line Picks: [|Happy|Sad|Angry|Confused|]
 ##Example of Random Range: {20-90} degrees F.
+##Example of Implode Command (Put delimiters in quotes): [@4 Table >> implode ", "]
 
 Table: MasterTable
-<h1>The Dragon's Hoard</h1><br>You encounter: <b>[@Encounter]</b><hr><h3>Detailed Loot Analysis</h3><br>1. <b>Gold:</b> {1d100+50} pieces.<br>2. <b>Item:</b> [@3 LootGen].
+<h1>The Dragon's Hoard</h1><br>You encounter: <b>[@Encounter]</b><hr><h3>Detailed Loot Analysis</h3><br>1. <b>Gold:</b> {1d100+50} pieces.<br>2. <b>Item:</b> [@3 LootGen >> implode ", "].
 
 Table: Encounter
 A group of {2d100//5} [|Happy|Sad|Angry|Confused|] [@Humanoid]s.
@@ -286,19 +289,64 @@ some dirty sketches
             if table_match:
                 full_tag = table_match.group(0) 
                 content = table_match.group(1).strip()
-                match_multi = re.match(r"^(\d+)\s+(.*)", content)
-                if match_multi:
-                    count = int(match_multi.group(1))
-                    table_ref = match_multi.group(2)
+                
+                # Default separator is ""
+                separator = "" 
+                
+                # NEW REGEX: Look for '>> implode "Separator"' 
+                # Captures the content inside the quotes (group 1).
+                implode_match = re.search(r'\s+>>\s+implode\s+"(.*?)"$', content, re.IGNORECASE)
+                
+                if implode_match:
+                    # Capture the content exactly as it appears inside the quotes
+                    separator = implode_match.group(1)
+                    
+                    # Remove the implode clause from the content to isolate count/table
+                    content = content[:implode_match.start()].strip()
+                    
+                # --- END NEW LOGIC ---
+
+                count = 1
+                table_ref = content
+
+                # 1. Try to match for Ranged/Dice count: {X} TableName
+                multi_roll_match_dice = re.match(r"^(\{.*?\})\s+(.*)", content)
+                
+                if multi_roll_match_dice:
+                    roll_expression = multi_roll_match_dice.group(1)
+                    table_ref = multi_roll_match_dice.group(2).strip()
+                    
+                    # Roll the dice expression to get a resulting number string
+                    count_str = self.roll_dice(roll_expression)
+                    try:
+                        count = max(0, int(count_str)) 
+                    except ValueError:
+                        count = 1 
+                        table_ref = content
+                        
+                # 2. Try to match for Fixed Numeric count: N TableName
                 else:
-                    count = 1
-                    table_ref = content
+                    match_multi_num = re.match(r"^(\d+)\s+(.*)", content)
+                    if match_multi_num:
+                        count = int(match_multi_num.group(1))
+                        table_ref = match_multi_num.group(2).strip()
+
+                # 3. Handle generation and replacement
                 results = []
-                for _ in range(count):
-                    results.append(self.roll_on_table(table_ref, tables))
-                final_result = ", ".join(results)
-                text = text.replace(full_tag, final_result, 1)
-                found_action = True
+                if table_ref in tables:
+                    for _ in range(count):
+                        results.append(self.roll_on_table(table_ref, tables))
+                    
+                    # Use the determined separator
+                    final_result = separator.join(results)
+                    
+                    text = text.replace(full_tag, final_result, 1)
+                    found_action = True
+                else:
+                    # Table not found, replace tag with error message
+                    text = text.replace(full_tag, f"[Error: Table '{table_ref}' not found]", 1)
+                    found_action = True
+                
             
             opt_match = re.search(r"\[\|(.*?)\|\]", text)
             if opt_match:
