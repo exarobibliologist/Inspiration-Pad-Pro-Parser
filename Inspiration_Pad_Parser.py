@@ -86,8 +86,8 @@ class IPPInterpreter:
         self.output_text.tag_configure("underline", underline=True)
         
         # Headers
-        self.output_text.tag_configure("h1", font=(base_font, 16, "bold"), spacing3=10)
-        self.output_text.tag_configure("h2", font=(base_font, 14, "bold"), spacing3=5)
+        self.output_text.tag_configure("h1", font=(base_font, 24, "bold"), spacing3=10)
+        self.output_text.tag_configure("h2", font=(base_font, 16, "bold"), spacing3=5)
         self.output_text.tag_configure("h3", font=(base_font, 12, "bold"))
         
         # Colors
