@@ -1,0 +1,66 @@
+Table: Menu
+<h1>Breakfast</h1><h2>Pick main course:</h2>[@5 Breakfast >> implode "<br>"]<br><h2>Pick 2 side dishes:</h2>[@5 BreakfastSides >> implode "<br>"]
+
+Table: Breakfast
+[|Scrambled|Fried|Poached|Hard Boiled|Soft Boiled|Deviled|] Eggs [|with herbs|with cheese| | | |]
+[|Scrambled|Fried|Poached|Hard Boiled|Soft Boiled|Deviled|] [@NounFaeCreatures] Eggs
+Eggs Over-[|Easy|Medium|Hard|] [|with herbs|with cheese| | | |]
+[@NounFaeCreatures] Eggs Over-[|Easy|Medium|Hard|] [|with herbs|with cheese| | | |]
+Eggs Sunny-Side Up [|with herbs|with cheese| | | |]
+[@NounFaeCreatures] Eggs Sunny-Side Up
+Egg [|Sandwich|Frittata|Biscuit|]
+[@NounFaeCreatures] Egg [|Sandwich|Frittata|Biscuit|]
+[|Smoked|Honey|Blackened|] Ham [|with gravy| | |]
+[|Smoked|Honey|Blackened|] [@NounMonstersOne] Ham [|with gravy| | |]
+Steak, [|Rare|Medium-Rare|Medium|Medium-Well|Well Done|]
+[@NounMonstersOne] Steak, [|Rare|Medium-Rare|Medium|Medium-Well|Well Done|]
+[|Hot|Cold|] [|Hearty|Thin|Thick|Creamy|Watery|] Porridge [| | |with gravy|with syrup|with jam|with honey|with berries|with nuts|]
+[|Cinnamon|Sticky|Sweet|] [|Roll|Bun|Bread|] [|with icing|with jam|with honey|]
+[|Small|Large|Sweet|Savory|] Pancakes [|with syrup|with jam|with honey|]
+[|Baked|Fried|Blood|] Pudding [|sweetened|spiced|]
+
+Table: BreakfastSides
+[|Crispy|Thick-cut|Soggy|Chewy|] Bacon
+[|Sweet|Mild|Spicy|Hot|Pickled|Deer|] Sausage
+[|Sour|Sweet|Plain|] Yogurt [| | |with fruit|]
+[|Fried|Boiled|] Potatoes
+[|Hard|Soft|Sharp|Pungent|] Cheese
+[|Corn|Fresh|Crusty|Buttered|Sourdough|Beer|Pumpernickel|Rye|Wheat|Soft|] Bread
+[|Grilled|Roasted|Skillet|Baked|Diced|Mashed|] Root Vegetables [|in drippings|with salt|]
+[|Buttered|Honeyed|Dry|Crumbly|Goblin Style|] Biscuits [|with gravy|with jam|]
+[|Roasted|Salted|Spiced|Candied|] [|almonds|walnuts|hazelnuts|chestnuts|]
+[|Fresh|Dried|Preserved|Feywild|] [|berries|apples|pears|melons|]
+
+Table:NounFaeCreatures
+Brownie
+Sprite
+Pixie
+Blink Dog
+Satyr
+Nymph
+Grig
+Faun
+Dryad
+
+Table:NounMonstersOne
+Imp
+Orc
+Goblin
+Kobold
+Hobgoblin
+Orge
+Giantess
+Troll
+Hag
+Dragon
+Wyrm
+Beholder
+Lich
+Bullette
+Gnoll
+Cyclops
+Griffon
+Hippogriff
+Rust Monster
+Flayer
+Centaur
