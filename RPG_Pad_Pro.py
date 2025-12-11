@@ -263,12 +263,10 @@ class IPPInterface:
         self.root.config(menu=menubar)
 
     def load_sample_script(self):
-        sample = """##Example of In-line Picks: [|Happy|Sad|Angry|Confused|]
-##Random Range uses two dashes: {20--90} degrees F.
-##Example of Implode Command (Put delimiters in quotes): [@4 Table >> implode ", "]
-## Advanced Math Test:
+        sample = """## Advanced Math Test:
 ##{1d100+3} rolls a d100 and adds 3 to the answer
 ##{42+69} does math! 42+69=111
+##{{4d8}+{8d8}} rolls multiple dice and adds them together
 ##{1d100-3} rolls a d100 and subtracts 3 from the answer
 ##{42-69} does math! 42-69=-27
 ##{42--69} picks a random number from 42 to 69
@@ -283,12 +281,18 @@ class IPPInterface:
 ##{ceil(10.1)} is rounded up.
 ##{sign(-5)} returns -1 for negative numbers, or 1 for positive numbers.
 
+##In-line random pick: [|Happy|Sad|Angry|Confused|]
+##[@PickMe] will draw a random item from the PickMe table
+##[@{1d20} PickMe] will roll a 1d20 and draw that many random items from the PickMe table
+##{1d[@dietype]} is a nested dice roll. It picks a random number from the dietype table, and uses it to roll a dice with that many sides.
+##To pick multiple items from a table and separate each pick with a comma, use implode (Put delimiters in quotes): [@4 Table >> implode ", "]
+
 Table: MasterTable
-<h1>The Dragon's Hoard</h1><br>You encounter: <b>[@Encounter]</b><hr><h3>Detailed Loot Analysis</h3><br>1. <b>Gold:</b> {sign(5)}  pieces.<br>2. <b>Item:</b> [@3 LootGen >> implode ", "].
+<h1>The Dragon's Hoard</h1><br>You encounter: <b>[@Encounter]</b><hr><h3>Detailed Loot Analysis</h3><br>1. <b>Gold:</b> {round(sqrt({1d100000}))} gp<br>2. <b>Item:</b> [@3 LootGen >> implode ", "].
 
 Table: Encounter
-A group of {2d100//5} [|Happy|Sad|Angry|Confused|] [@Humanoid]s.
-A solitary <b>[@Humanoid]</b> (Elite).
+10:<p>A group of {floor({1d1000/5})} [|Happy|Sad|Angry|Confused|] [@Humanoid]s.</p>
+<p>A solitary <b>[@Humanoid]</b> (Elite).</p>
 <p>A hidden trap! (DC {1d20+5} to spot)</p>
 
 Table: Humanoid
@@ -297,18 +301,11 @@ Kobold
 Orc
 Gnoll
 
-Table: MoneyMoneyMoney
-42
-69
-100
-{1d500}
-
 Table: LootGen
 [@LootTable] in [|pristine|enchanted|dirty|broken|cursed|unknown (DC {1d20} to identify)|] condition
 [|pristine|enchanted|dirty|broken|cursed|unknown (DC {1d20} to identify)|] [@LootTable]
 
 Table: LootTable
-{round(sqrt({1d100000}))} gold pieces
 wine skin [|(full of wine)|(full of hard liquor)|(empty)|(water)|]
 bottle of hard liquor
 bottle of [|fine|awful|] [|wine|beer|mead|]
@@ -325,7 +322,7 @@ bottle of ink ({1d100}% left) and quill
 pair of manacles
 spade
 [|sewing needle|sewing needle and some thread|]
-{10-250} ft [|chain|silk rope|linen rope|]
+{10--250} ft [|chain|silk rope|linen rope|]
 small vial [|(empty)|(poison DC {1d10+10})|(sleeping draught)|(hallucinogen)|(unknown)|]
 small [|leather|cloth|] bag with [|dice|figurine|] game
 playing cards
@@ -338,10 +335,11 @@ drum
 flute
 metal cup
 block of wax
-{5-42} candles
+{5--42} candles
 list of names [|(some of them crossed off)|(and amounts owed)|]
 some dirty sketches
 [|clay|stone|brass|silver|gold|] figurine of a [|man|woman|horse|dragon|dog|lion|bird|phallic symbol|]
+
 """
         self.input_text.insert(tk.END, sample)
 
