@@ -27,10 +27,10 @@
 ##CAPITAL LETTERS with >> upper
 
 Table: MasterTable
-<h1>The Dragon's Hoard</h1><br>You encounter: <b>[@5 Encounter >> sort]</b><hr><h3>Detailed Loot Analysis</h3><br>1. <b>Gold:</b> {round(sqrt({1d100000}))} gp<br>2. <b>Item:</b> [@3 LootGen >> sort >> implode "<br>"]
+<h1>The Dragon's Hoard</h1><br>You encounter: <b>[@5 Encounter >> sort]</b><hr><h3>Detailed Loot Analysis</h3><br>1. <b>Gold:</b> {round(sqrt({1d100000}))} gp<br>2. <b>Item:</b> [@10 LootGen >> sort >> implode "<br>"]
 
 Table: Encounter
-10:{floor({1d1000/5})} [|Happy|Sad|Angry|Confused|] [@Humanoid]s
+{floor({1d1000/5})} [|Happy|Sad|Angry|Confused|] [@Humanoid]s
 [@Humanoid] (Elite)
 A hidden trap! (DC {1d20+5} to spot)
 

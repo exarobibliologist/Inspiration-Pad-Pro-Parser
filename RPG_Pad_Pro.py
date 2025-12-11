@@ -2,7 +2,7 @@ import tkinter as tk
 from tkinter import messagebox, filedialog, ttk
 import random
 import re
-import os
+import os 
 import importlib.util 
 import sys 
 
@@ -15,6 +15,7 @@ class IPPInterface:
 
         self.COLOR_ODD = "#FFFFFF"
         self.COLOR_EVEN = "#EFEFEF"
+        self.base_dir = base_dir # Storing the base directory for file access
         self.RULESET_DIR = os.path.join(base_dir, "Rules") 
         self.ruleset_funcs = {} # Stores ALL dynamically loaded functions
 
@@ -160,13 +161,12 @@ class IPPInterface:
         self.ruleset_funcs = new_funcs
         
         # Check for essential CORE ENGINE functions 
-        # Added 'case_converter' and 'list_sorter' as they are required by resolve_table_tags
         CORE_ENGINE_FUNCS = ['parse_tables', 'roll_on_table', 'resolve_table_tags', 'math_evaluator', 'case_converter', 'list_sorter'] 
         if not all(func in self.ruleset_funcs for func in CORE_ENGINE_FUNCS):
-            # ... (error message) ...
+            messagebox.showerror("Ruleset Error", f"The ruleset '{ruleset_name}' is missing one or more CORE ENGINE functions: {', '.join(CORE_ENGINE_FUNCS)}. Ensure 'table_parsing_rules.py', 'math_rules.py', 'case_conversion_rules.py', and 'list_manipulation_rules.py' are present.")
             self.ruleset_funcs = {}
             
-        self.refresh_table_list()            
+        self.refresh_table_list()
 
 
     # --- Generation Logic (Simplified Modular Calls) ---
@@ -193,7 +193,7 @@ class IPPInterface:
     def run_generation(self):
         """Executes the generation process using loaded ruleset functions."""
         
-        CORE_ENGINE_FUNCS = ['parse_tables', 'roll_on_table', 'resolve_table_tags', 'math_evaluator']
+        CORE_ENGINE_FUNCS = ['parse_tables', 'roll_on_table', 'resolve_table_tags', 'math_evaluator', 'case_converter', 'list_sorter']
         if not all(func in self.ruleset_funcs for func in CORE_ENGINE_FUNCS):
             messagebox.showerror("Execution Error", "Core Ruleset is not fully loaded. Check for errors during load.")
             return
@@ -264,86 +264,31 @@ class IPPInterface:
         self.root.config(menu=menubar)
 
     def load_sample_script(self):
-        sample = """## Advanced Math Test:
-##{1d100+3} rolls a d100 and adds 3 to the answer
-##{42+69} does math! 42+69=111
-##{{4d8}+{8d8}} rolls multiple dice and adds them together
-##{1d100-3} rolls a d100 and subtracts 3 from the answer
-##{42-69} does math! 42-69=-27
-##{42--69} picks a random number from 42 to 69
-##{1d100*3} rolls a d100 and multiplies the answer by 3
-##{1d100/3} rolls a d100 and divides the answer by 3. This will give you the accurate floating point calculation.
-##{max(10, 50, 20)} returns the max value of a list of numbers.
-##{min(10, 50, 20)} returns the min value of a list of numbers.
-##{avg(10, 50, 20)} returns the average of a list of numbers.
-##{sqrt(25)} returns the square root of a number.
-##{abs(-10)} returns the absolute value of a number.
-##{floor(10.9)} is rounded down.
-##{ceil(10.1)} is rounded up.
-##{sign(-5)} returns -1 for negative numbers, or 1 for positive numbers.
+        """
+        Loads the sample script content from the 'sample_script.txt' file 
+        located in the base directory.
+        """
+        sample_file_path = os.path.join(self.base_dir, "sample_script.txt")
+        content = ""
+        
+        try:
+            with open(sample_file_path, 'r', encoding='utf-8') as f:
+                content = f.read()
+        except FileNotFoundError:
+            # Fallback content if the file is missing
+            content = (
+                "## ERROR: sample_script.txt not found.\n"
+                "## Please create a file named 'sample_script.txt' in the application directory.\n\n"
+                "TABLE: Example\n"
+                "1:{1d6} Random result.\n"
+            )
+        except Exception as e:
+            # Handle other possible file reading errors
+            content = f"## ERROR loading sample_script.txt: {e}\n"
 
-##In-line random pick: [|Happy|Sad|Angry|Confused|]
-##[@PickMe] will draw a random item from the PickMe table
-##[@{1d20} PickMe] will roll a 1d20 and draw that many random items from the PickMe table
-##{1d[@dietype]} is a nested dice roll. It picks a random number from the dietype table, and uses it to roll a dice with that many sides.
-##[@5 Table >> sort] will pick multiple items from a table and sort them numerically or alphabetically before output.
-##To pick multiple items from a table and separate each pick with a comma, use implode (Put delimiters in quotes): [@4 Table >> sort >> implode ", "]
+        self.input_text.delete("1.0", tk.END)
+        self.input_text.insert(tk.END, content)
 
-Table: MasterTable
-<h1>The Dragon's Hoard</h1><br>You encounter: <b>[@Encounter]</b><hr><h3>Detailed Loot Analysis</h3><br>1. <b>Gold:</b> {round(sqrt({1d100000}))} gp<br>2. <b>Item:</b> [@3 LootGen >> implode ", "].
-
-Table: Encounter
-10:<p>A group of {floor({1d1000/5})} [|Happy|Sad|Angry|Confused|] [@Humanoid]s.</p>
-<p>A solitary <b>[@Humanoid]</b> (Elite).</p>
-<p>A hidden trap! (DC {1d20+5} to spot)</p>
-
-Table: Humanoid
-Goblin
-Kobold
-Orc
-Gnoll
-
-Table: LootGen
-[@LootTable] in [|pristine|enchanted|dirty|broken|cursed|unknown (DC {1d20} to identify)|] condition
-[|pristine|enchanted|dirty|broken|cursed|unknown (DC {1d20} to identify)|] [@LootTable]
-
-Table: LootTable
-wine skin [|(full of wine)|(full of hard liquor)|(empty)|(water)|]
-bottle of hard liquor
-bottle of [|fine|awful|] [|wine|beer|mead|]
-small pouch of black lotus extract (about {1d100}% of the pouch is left)
-religious [|medallion|icon|] worth ({1d10*10} sp)
-lock of [|brunette|blonde|red|] hair
-[|gold|silver|copper|steel|] [|ring|nose ring|neck chain|] with small {1d4*10}sp gem
-feather from an exotic bird
-[|squirrel|rabbit|racoon|jaguar|lion|tiger|] pelt
-fishing hook and line
-fishing net
-bottle of ink ({1d100}% left) and quill
-{1d3+1} sticks of chalk
-pair of manacles
-spade
-[|sewing needle|sewing needle and some thread|]
-{10--250} ft [|chain|silk rope|linen rope|]
-small vial [|(empty)|(poison DC {1d10+10})|(sleeping draught)|(hallucinogen)|(unknown)|]
-small [|leather|cloth|] bag with [|dice|figurine|] game
-playing cards
-small [|leather|cloth|] bag of herbs ([|poison DC {1d6+9}|sleeping aid|hallucinogen|unknown|healing|stimulant|medicinal|])
-[|small|large|] bag of [|nuts and raisins|vegetables|jerky|grain|hard candy|stones|seashells|]
-[|small|large|] bag of [|dead|live|] [|wasps|beetles|scorpions|spiders|ants|mice|]
-hunting knife
-whistle
-drum
-flute
-metal cup
-block of wax
-{5--42} candles
-list of names [|(some of them crossed off)|(and amounts owed)|]
-some dirty sketches
-[|clay|stone|brass|silver|gold|] figurine of a [|man|woman|horse|dragon|dog|lion|bird|phallic symbol|]
-
-"""
-        self.input_text.insert(tk.END, sample)
 
     def apply_shading(self, text_widget):
         """Applies zebra-striping ONLY to the provided text_widget (intended for input_text)."""
