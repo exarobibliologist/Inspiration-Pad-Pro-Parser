@@ -136,7 +136,7 @@ def math_evaluator(text, tables, helpers):
 
             if result == int(result):
                 return str(int(result))
-            return f"{result:.2f}"
+            return f"{result:.8f}"
             
         except Exception as e:
             return f"[Math Execution Error: {e}]"
