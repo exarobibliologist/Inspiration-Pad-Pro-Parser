@@ -1,5 +1,192 @@
 Table: Menu
-<h1>Breakfast</h1><h2>Pick main course:</h2>[@5 Breakfast >> implode "<br>"]<br><h2>Pick 2 side dishes:</h2>[@5 BreakfastSides >> implode "<br>"]
+<h1>[@MasterTavernName]</h1><h2>Breakfast Menu</h2>[@BreakfastMenu]<br><h2>Dinner Menu</h2>[@DinnerMenu]<br>
+
+Table: MasterTavernName
+[|[@Owner_Name >> proper]'s|The|] [@TavernsA] [@TavernsB] [|Inn|Tavern|Restaurant|Tavern and Inn| | | | |]
+[|[@Owner_Name >> proper]'s|The|] House of [@TavernsC]
+[|[@Owner_Name >> proper]'s|The|] [@TavernsA] House of [@TavernsC]
+[|[@Owner_Name >> proper]'s|The|] [|[@TavernsA] [@TavernsB]|[@TavernsB] [@TavernsC]|]
+[|[@Owner_Name >> proper]'s|The|] [@TavernsB]
+[@TavernsC] and [@TavernsC]
+
+Table: TavernsA
+Amazing
+Angry
+[@Colors]
+[@Colors] and [@Colors]
+Bouncing
+Brewing
+Burning
+Carved
+Checkered
+Cobbler
+Copper[||y]
+Crackling
+Crawling
+Drunken
+Dwarven
+Elven
+Falling
+Farmer
+Fisherman
+Flying
+Frolicking
+Gobbling
+Gold[||en]
+Gnomish
+Guilty
+Halfling
+Handsome
+Happy
+Hearty
+Herder
+Hidden
+Humble
+Hungry
+Husband
+Icy
+Innocent
+Iron
+Ivory
+King
+Musty
+Oaken
+Prince
+Restful
+Running
+Rusty
+Satisfied
+Silver
+Sleeping
+Smith
+Spiked
+Stone
+Stumbling
+Swimming
+Thirsty
+Wife
+Wizard
+Yellow
+
+Table: Colors
+White
+Yellow
+Blue
+Red
+Green
+Black
+Brown
+Azure
+Purple
+Gray
+Orange
+Maroon
+Charcoal
+Aquamarine
+Coral
+Crimson
+Cyan
+
+Table: TavernsB
+Archer
+Axe
+Bench
+Bowman
+Dagger
+Dog
+Duchess
+Dragon
+Dwarf
+Eagle
+Elf
+Fork
+Glaive
+Glibber
+Gnome
+Gobbler
+Goblin
+Griffen
+Halberd
+Halfling
+Hammer
+Hero
+Ice Pick
+Keg
+Knight
+Lobster
+Maiden
+Man-at-arms
+Minatour
+Mug
+Nail
+Octopus
+Ogre
+Orc
+Pauper
+Peacock
+Pick
+Pike
+Pikeman
+Plate
+Princess
+Sailor
+Sausage
+Scabbard
+Seagull
+Shark
+Spoon
+Swordsman
+Troll
+Turkey
+Turtle
+Unicorn
+Virgin
+Warrior
+Wench
+
+Table: TavernsC
+Ale
+Beer
+Chicken
+Eats
+Fish
+Good Food
+Happiness
+Hooch
+Hops
+Hunger
+Lamb
+Mead
+Melody
+Punch
+Rest
+Scotch
+Sheep
+Sleep
+Song
+Spirits
+Steak
+Stew
+Whisky
+Venison
+
+Table: BreakfastMenu
+</h3>[@5 BreakfastCost >> implode "<br>"]<br><h3>Pick 2 side dishes:</h3>[@5 BreakfastSidesCost >> implode "<br>"]
+
+Table: BreakfastCost
+[@Breakfast] = {10-20}sp
+
+Table: BreakfastSidesCost
+[@BreakfastSides] = {2-10}sp
+
+Table: DinnerMenu
+</h3>[@5 DinnerCost >> implode "<br>"]<br><h3>Pick 2 side dishes:</h3>[@5 DinnerSidesCost >> implode "<br>"]
+
+Table: DinnerCost
+[@Dinner] = {10-20}sp
+
+Table: DinnerSidesCost
+[@DinnerSides] = {2-10}sp
 
 Table: Breakfast
 [|Scrambled|Fried|Poached|Hard Boiled|Soft Boiled|Deviled|] Eggs [|with herbs|with cheese| | | |]
@@ -20,6 +207,7 @@ Steak, [|Rare|Medium-Rare|Medium|Medium-Well|Well Done|]
 [|Baked|Fried|Blood|] Pudding [|sweetened|spiced|]
 
 Table: BreakfastSides
+5: Leftover [@Dinner]
 [|Crispy|Thick-cut|Soggy|Chewy|] Bacon
 [|Sweet|Mild|Spicy|Hot|Pickled|Deer|] Sausage
 [|Sour|Sweet|Plain|] Yogurt [| | |with fruit|]
@@ -30,6 +218,118 @@ Table: BreakfastSides
 [|Buttered|Honeyed|Dry|Crumbly|Goblin Style|] Biscuits [|with gravy|with jam|]
 [|Roasted|Salted|Spiced|Candied|] [|almonds|walnuts|hazelnuts|chestnuts|]
 [|Fresh|Dried|Preserved|Feywild|] [|berries|apples|pears|melons|]
+
+Table: Dinner
+[@DinnerPrep] [@MealAnimal] [|Stew|Pie|Cutlets|Skillet|Slabs|Shanks|Nuggets|Haunch|Roast|Fillet|Cutlets|Strips|Quarters|Kebabs|Tenderloin|]
+[@MealAnimal] [|and Root-Veg Mash|Ribs|Jerky Platter|Bites|Rollups|]
+Thick-Cut [@MealAnimal] Chops
+Wildwood [@MealAnimal] Hash
+[|Iron-Kettle|Stone-Hearth|Black-Iron|] [@MealAnimal] [|Bake|Soup|Pot Pie|Stir-Fry|Casserole|]
+Ranger-Style [@DinnerPrep] [@MealAnimal]
+[|Forest-Foraged|Hunter’s|] [@MealAnimal] [|Medley|Hotpot|]
+[@MealAnimal]-Broth Noodles
+Herbal-Broth Noodles
+[@MealAnimal] [|Sausage|Bacon|Steak] [| | |& Dumplings|& Gravy|]
+[@MealAnimal] [|Dragonfire ||][|Chili|Chili con Carne|]
+
+Table: DinnerPrep
+Buttery
+Cask-Aged
+Golden-Crusted
+Honey-Glazed
+Crisp-Skin
+Stewed
+Roasted
+Fried
+Baked
+Breaded
+Battered
+Skewered
+Boiled
+Smoked
+Oak-Smoked
+Grilled
+Seared
+Flame-broiled
+Salted
+Peppered
+Hearty
+Savory
+Herbed
+Charred
+Storm-Seared
+Braised
+Thrice-Cooked
+Sun-Dried
+Dungeon-Roast
+
+Table: MealAnimal
+Bear
+Beaver
+Boar
+Chicken
+Deer
+Dragon
+Duck
+Fish
+Goat
+Goose
+Hare
+Lamb
+Lobster
+Lizard
+Mockingbird
+Mouse
+Mutton
+Rabbit
+Pork
+Pheasant
+Quail
+Ram
+Snake
+Squid
+Squirrel
+Otter
+Venison
+Wolf
+Wyvern
+
+Table: DinnerSides
+15: Leftover [@Breakfast]
+[|Soft|Steamed|Boiled|Pan-Fried|Herbed|Stuffed|] Dumplings [|with gravy|with herbs|in broth|]
+[|Long|Short|Curly|Spiral|Handmade|] Pasta [|with butter|with herbs|with garlic sauce|with gravy|]
+[|Brown|Red|Green|Earthy|Spiced|] Lentils with [|onions|carrots|herbs|]
+[|Braised|Butter-Seared|Charred|Stewed|Crisp|] Leeks & [|Onions|Shallots|Garlic|]
+[|White|Red|Black|Kidney|String|Butter|] Beans [|with lard|with herbs|in stew|]
+[|Sweet|Green|Snow|Butter|Garden|] Peas [|with mint|with butter|in broth|]
+[|Mashed|Salted|Herbed|Roasted|Honey-Glazed|Fried|] Turnips [|with gravy|with butter|]
+[|Stone-Oven|Fire-Toasted|Flat|Crisped|Herb-Dusted|] [|Corn|Fresh|Crusty|Buttered|Sourdough|Beer|Pumpernickel|Rye|Wheat|Soft|] Bread [|loaf|slice|rolls|round|] [|with cheese|with dip|with butter|]
+[|Hard|Soft|Sharp|Pungent|Aged|Smoked|] Cheese [|wedge|slab|crumbles|plate|]
+[|Fried|Boiled|Mashed|Baked|Skillet-Seared|Roasted|Herbed|] Potatoes [|with skins|with gravy|with butter|]
+[|Fine|Pearled|Toasted|Herbed|Spiced|Wild|] Couscous [|with vegetables|with broth|]
+[|Grilled|Roasted|Skillet|Baked|Diced|Mashed|Wilted|Braised|Pan-Seared|Salted|Wild-Foraged|] [|Root|Garden|Hearty|Harvest|Herb-Seasoned|] Vegetable Medley [|in drippings|with salt|with butter|with herbs|]
+[|Toasted|Salted|Sweet|Mixed|Forest-Picked|] Nuts & [|Berries|Seeds|Dried Fruit|]
+[|Pickled|Brined|Sweet|Sour|Spicy|] Vegetables [|platter|mix|assortment|]
+[|Brown|Wild|White|Herbed|Stone-Cut|] Rice [|pilaf|bowl|cakes|]
+[|Butter-Braised|Sweet-Root|Crispy|Herbed|Salt-Roasted|] Squash & [|Pumpkin|Gourd|Marrow|]
+[|Garden|Herbed|Foraged|Mixed|Fresh-Cut|] [|salad|slaw|mix|side|]
+[|Stewed|Seasoned|Diced|Fire-Kissed|Herb-Cooked|] Tomatoes & [|Peppers|Onions|Roots|]
+[|Creamy|Savory|Thick|Salted|Barley-Rich|Seasoned|Wild|Stone-Ground|Hearty|] Porridge [|with nuts|with berries|with honey|]
+[|Wood-Fried|Oven-Baked|Skillet-Toasted|Charred|Herbed|] Mushrooms
+[|Honeyed|Salted|Herbed|Roasted|Glazed|] [|Carrots|Beets|]
+[|Pickled|Herbed|Smoky|Salted|Farm-Fresh|] Eggs
+[|Berry|Autumn|Spiced|Wildfruit|Tart|] Chutney
+[|Fire-Roasted|Grilled|Salted|Buttered|Charred|] Corn
+[|Fried|Braised|Seasoned|Caramelized|Salted|] Cabbage
+[|Onion|Garlic|Butter-Root|Stone-Herb|Creamed|] Mash
+[|Wild-Herb|Forest|Tavern|Hearty|Sage-Stuffed|] Stuffing
+[|Salted|Braised|Wilted|Herbed|Stewed|] Collards
+[|Split|Creamed|Herbed|Salted|Earthy|] Peas
+[|Stewed|Seasoned|Diced|Herbed|Fire-Kissed|] Tomatoes
+[|Butter-Braised|Sweet-Root|Crispy|Herbed|Salt-Roasted|] Squash
+[|Toasted|Salted|Sweet|Mixed|Forest-Picked|] Nuts
+[|Crisp|Fried|Herbed|Ring-Cut|Caramelized|] Leeks & Onions
+[|Sprout|Garden|Field-Green|Foraged|Crunchy|] Salad Mix
 
 Table:NounFaeCreatures
 Brownie
@@ -64,3 +364,431 @@ Hippogriff
 Rust Monster
 Flayer
 Centaur
+
+Table: Owner_Name
+[@HalflingFirstNameMale]
+[@HalflingFirstNameFemale]
+
+Table: HalflingMaleName
+[@VictorianFirstMale >> Proper] [@HalflingLastName >> Proper]
+[@HalflingFirstNameMale >> Proper] [@HalflingLastName >> Proper]
+
+Table: HalflingFemaleName
+[@VictorianFirstMale >> Proper] [@HalflingLastName >> Proper]
+;[@HalflingFirstNameFemale >> Proper] [@HalflingLastName >> Proper]
+
+Table: HalflingLastName
+[@HalflingNameLastStart][@HalflingNamelastEnd]
+
+Table: HalflingNameLastStart
+amber
+apple
+bumble
+cherry
+dander
+dimple
+duffle
+fumble
+fuzz
+left
+nimble
+peach
+pepper
+ruffle
+rumble
+shuffle
+stout
+summer
+tail
+tall
+thimble
+tumble
+over
+under
+willow
+twinkle
+
+Table: HalflingNameLastEnd
+bee
+berry
+bird
+by
+by
+[|feet|foot]
+finger[|s|]
+folk
+jack
+kin
+knees
+son
+ton
+town
+tree
+vain
+ville
+well
+wood
+worth
+
+Table: HalflingFirstNameMale
+[@HalflingMaleS][|[@HalflingMaleS]|][@HalflingMaleM]
+[@VictorianFirstMale]
+
+Table: HalflingFirstNameFemale
+[@HalflingMaleS][|[@HalflingMaleS]|][@HalflingMaleF]
+[@VictorianFirstFemale]
+
+Table: HalflingMaleS
+b[|a|e|ee|i|o|u|]
+br[|a|e|ee|i|o|u|]
+b[|a|e|ee|i|o|u|]
+c[|a|e|ee|i|o|u|]
+ch[|a|e|ee|i|o|u|]
+d[|a|e|ee|i|o|u|]
+dr[|a|e|ee|i|o|u|]
+fr[|a|e|ee|i|o|u|]
+g[|a|e|ee|i|o|u|]
+gr[|a|e|ee|i|o|u|]
+h[|a|e|ee|i|o|u|]
+j[|a|e|ee|i|o|u|]
+k[|a|e|ee|i|o|u|]
+m[|a|e|ee|i|o|u|]
+n[|a|e|ee|i|o|u|]
+p[|a|e|ee|i|o|u|]
+r[|a|e|ee|i|o|u|]
+s[|a|e|ee|i|o|u|]
+sh[|a|e|ee|i|o|u|]
+t[|a|e|ee|i|o|u|]
+th[|a|e|ee|i|o|u|]
+w[|a|e|ee|i|o|u|]
+
+Table: HalflingMaleM
+b
+lb
+b[|a|y|o|]
+lb[|a|y|o|]
+bb[|a|y|o|u|]
+cy
+rcy
+ch[|a|y|o|u|]
+d
+d[|a|y|o|u|]
+ld
+ld[|a|y|o|u|]
+dd[|a|y|o|u|]
+ff[|a|y|o|u|]
+g
+g[|a|y|o|u|]
+gg[|a|y|o|u|]
+k[|a|y|o|u|]
+kk[|a|y|o|u|]
+m[|a|y|o|u|]
+mm[|a|y|o|]
+n[|a|y|o|u|]
+nn[|a|y|o|u|]
+5:ng[|a|y|o|u|]
+p
+p[|a|y|o|u|]
+m[|a|y|o|u|]
+r[|a|y|o|u|]
+rr[|a|y|o|u|]
+ss[|a|y|o|u|]
+sh[|a|y|o|u|]
+t
+t[|a|y|o|u|]
+tt[|a|y|o|u|]
+th[|a|y|o|u|]
+w[|a|y|o|u|]
+
+Table: HalflingMaleF
+b
+lb
+b[|a|ie|y|]
+lb[|a|ie|y|]
+bb[|a|ie|y|]
+cy
+rcy
+ch[|a|ie|y|]
+d
+d[|a|ie|y|]
+ld
+ld[|a|ie|y|]
+dd[|a|ie|y|]
+ff[|a|ie|y|]
+g[|a|ie|y|]
+gg[|a|ie|y|]
+k[|a|ie|y|]
+kk[|a|ie|y|]
+m[|a|ie|y|]
+mm[|a|ie|y|]
+n[|a|ie|y|]
+nn[|a|ie|y|]
+5:ng[|a|ie|y|]
+p[|a|ie|y|]
+m[|a|ie|y|]
+r[|a|ie|y|]
+rr[|a|ie|y|]
+ss[|a|ie|y|]
+sh[|a|ie|y|]
+t[|a|ie|y|]
+tt[|a|ie|y|]
+th[|a|ie|y|]
+
+Table: VictorianFirstMale
+abe
+albert
+alexander
+alonzo
+ambrose
+amon
+amos
+archibald
+arnold
+asa
+august
+augustus
+barnabas
+barney
+bartholomew
+benjamin
+bennet
+benedict
+bernard
+bertram
+buford
+byron
+calvin
+clarence
+clement
+clinton
+cole
+edmund
+edwin
+eldon
+eli
+elijah
+emmett
+enoch
+ezekiel
+ezra
+francis
+frank
+franklin
+frederick
+garrett
+gideon
+gilbert
+granville
+harland
+harrison
+harold
+harry
+harvey
+henry
+hiram
+horace
+horatio 
+hugh
+isaiah
+israel
+isaac
+jacob
+jasper
+jack
+jedediah
+jeptha
+josiah
+joshua
+julian
+julius
+lafayette
+lawrence
+leander
+lester
+levi
+lucas
+lucian
+lucius
+luke
+luther
+louis
+levi
+lucas
+lucian
+lucius
+luke
+luther
+marcellus
+mark
+martin
+masheck
+maurice
+maxwell
+merrill
+meriwether
+mordecai
+morgan
+morris
+nathaniel
+newton
+nicholas
+nigel
+nimrod
+ninian
+obediah
+octavius
+orville
+oscar
+owen
+percival
+perry
+pleasant
+ralph
+raymond
+reuben
+roderick
+rudolph
+rufus
+samuel
+seth
+silas
+simon
+simeon
+stanley
+thaddeus
+theodore
+ulysses
+uriah
+victor
+walter
+warren
+wilfred
+zachariah
+zebulon
+zedock 
+ 
+Table: VictorianFirstFemale
+abigale
+ada 
+adella 
+agnes 
+allie 
+almira
+alva
+amelia
+arrah
+beatrice
+becky
+bernice
+bessie
+charity
+charlotte
+chastity
+claire
+constance
+cynthia 
+dorothy
+edith
+edna
+edwina
+eleanor
+ella
+ellie
+elvira
+emma
+emmeline
+esther
+ethel
+ettie
+eudora
+eva 
+eveline
+fanny
+fidelia 
+flora
+florence
+frances 
+genevieve 
+georgia 
+gertrude
+grace
+hannah
+hattie
+helen
+helene
+henrietta
+hettie
+hope 
+hortence
+isabell
+jane
+jennie
+jessamine
+josephine
+judith
+julia
+juliet 
+leah
+lenora
+letitia
+lila
+lilly
+lorena
+lorraine
+lottie
+louise
+lucy
+lulu
+lydia
+mahulda
+martha
+matilda
+mattie
+maude 
+maxine
+mercy 
+mildred
+minerva 
+molly
+myrtle
+natalie
+nettie
+nora
+orpha
+parthena
+patsy
+peggy
+permelia
+philomena
+phoebe
+polly
+preshea
+rachel
+rebecca
+rhoda
+rowena
+rufina
+ruth
+sally 
+samantha
+selina
+sophronia
+stella
+sylvia
+theodosia
+vertiline
+vilolet
+vivian
+winnifred
+zona
+zylphia
+cecilia
+cordelia
+lavinia
+
+
+
+
+
+
+

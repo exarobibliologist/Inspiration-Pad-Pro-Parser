@@ -1,0 +1,80 @@
+##Example of In-line Picks: [|Happy|Sad|Angry|Confused|]
+##Random Range uses two dashes: {20--90} degrees F.
+##Example of Implode Command (Put delimiters in quotes): [@4 Table >> implode ", "]
+## Advanced Math Test:
+##{1d100+3} rolls a d100 and adds 3 to the answer
+##{42+69} does math! 42+69=111
+##{1d100-3} rolls a d100 and subtracts 3 from the answer
+##{42-69} does math! 42-69=-27
+##{42--69} picks a random number from 42 to 69
+##{1d100*3} rolls a d100 and multiplies the answer by 3
+##{1d100/3} rolls a d100 and divides the answer by 3. This will give you the accurate floating point calculation.
+##{max(10, 50, 20)} returns the max value of a list of numbers.
+##{min(10, 50, 20)} returns the min value of a list of numbers.
+##{avg(10, 50, 20)} returns the average of a list of numbers.
+##{sqrt(25)} returns the square root of a number.
+##{abs(-10)} returns the absolute value of a number.
+##{floor(10.9)} is rounded down.
+##{ceil(10.1)} is rounded up.
+##{sign(-5)} returns -1 for negative numbers, or 1 for positive numbers.
+
+Table: MasterTable
+<h1>The Dragon's Hoard</h1><br>You encounter: <b>[@Encounter]</b><hr><h3>Detailed Loot Analysis</h3><br>1. <b>Gold:</b> {sign(5)}  pieces.<br>2. <b>Item:</b> [@3 LootGen >> implode ", "].
+
+Table: Encounter
+A group of {2d100//5} [|Happy|Sad|Angry|Confused|] [@Humanoid]s.
+A solitary <b>[@Humanoid]</b> (Elite).
+<p>A hidden trap! (DC {1d20+5} to spot)</p>
+
+Table: Humanoid
+Goblin
+Kobold
+Orc
+Gnoll
+
+Table: MoneyMoneyMoney
+42
+69
+100
+{1d500}
+
+Table: LootGen
+[@LootTable] in [|pristine|enchanted|dirty|broken|cursed|unknown (DC {1d20} to identify)|] condition
+[|pristine|enchanted|dirty|broken|cursed|unknown (DC {1d20} to identify)|] [@LootTable]
+
+Table: LootTable
+{round(sqrt({1d100000}))} gold pieces
+wine skin [|(full of wine)|(full of hard liquor)|(empty)|(water)|]
+bottle of hard liquor
+bottle of [|fine|awful|] [|wine|beer|mead|]
+small pouch of black lotus extract (about {1d100}% of the pouch is left)
+religious [|medallion|icon|] worth ({1d10*10} sp)
+lock of [|brunette|blonde|red|] hair
+[|gold|silver|copper|steel|] [|ring|nose ring|neck chain|] with small {1d4*10}sp gem
+feather from an exotic bird
+[|squirrel|rabbit|racoon|jaguar|lion|tiger|] pelt
+fishing hook and line
+fishing net
+bottle of ink ({1d100}% left) and quill
+{1d3+1} sticks of chalk
+pair of manacles
+spade
+[|sewing needle|sewing needle and some thread|]
+{10-250} ft [|chain|silk rope|linen rope|]
+small vial [|(empty)|(poison DC {1d10+10})|(sleeping draught)|(hallucinogen)|(unknown)|]
+small [|leather|cloth|] bag with [|dice|figurine|] game
+playing cards
+small [|leather|cloth|] bag of herbs ([|poison DC {1d6+9}|sleeping aid|hallucinogen|unknown|healing|stimulant|medicinal|])
+[|small|large|] bag of [|nuts and raisins|vegetables|jerky|grain|hard candy|stones|seashells|]
+[|small|large|] bag of [|dead|live|] [|wasps|beetles|scorpions|spiders|ants|mice|]
+hunting knife
+whistle
+drum
+flute
+metal cup
+block of wax
+{5-42} candles
+list of names [|(some of them crossed off)|(and amounts owed)|]
+some dirty sketches
+[|clay|stone|brass|silver|gold|] figurine of a [|man|woman|horse|dragon|dog|lion|bird|phallic symbol|]
+
