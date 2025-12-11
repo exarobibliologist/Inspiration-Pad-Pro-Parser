@@ -160,12 +160,13 @@ class IPPInterface:
         self.ruleset_funcs = new_funcs
         
         # Check for essential CORE ENGINE functions 
-        CORE_ENGINE_FUNCS = ['parse_tables', 'roll_on_table', 'resolve_table_tags', 'math_evaluator'] 
+        # Added 'case_converter' and 'list_sorter' as they are required by resolve_table_tags
+        CORE_ENGINE_FUNCS = ['parse_tables', 'roll_on_table', 'resolve_table_tags', 'math_evaluator', 'case_converter', 'list_sorter'] 
         if not all(func in self.ruleset_funcs for func in CORE_ENGINE_FUNCS):
-            messagebox.showerror("Ruleset Error", f"The ruleset '{ruleset_name}' is missing one or more CORE ENGINE functions: {', '.join(CORE_ENGINE_FUNCS)}. Ensure 'table_parsing_rules.py' and 'math_rules.py' are present.")
+            # ... (error message) ...
             self.ruleset_funcs = {}
             
-        self.refresh_table_list()
+        self.refresh_table_list()            
 
 
     # --- Generation Logic (Simplified Modular Calls) ---
@@ -285,7 +286,8 @@ class IPPInterface:
 ##[@PickMe] will draw a random item from the PickMe table
 ##[@{1d20} PickMe] will roll a 1d20 and draw that many random items from the PickMe table
 ##{1d[@dietype]} is a nested dice roll. It picks a random number from the dietype table, and uses it to roll a dice with that many sides.
-##To pick multiple items from a table and separate each pick with a comma, use implode (Put delimiters in quotes): [@4 Table >> implode ", "]
+##[@5 Table >> sort] will pick multiple items from a table and sort them numerically or alphabetically before output.
+##To pick multiple items from a table and separate each pick with a comma, use implode (Put delimiters in quotes): [@4 Table >> sort >> implode ", "]
 
 Table: MasterTable
 <h1>The Dragon's Hoard</h1><br>You encounter: <b>[@Encounter]</b><hr><h3>Detailed Loot Analysis</h3><br>1. <b>Gold:</b> {round(sqrt({1d100000}))} gp<br>2. <b>Item:</b> [@3 LootGen >> implode ", "].

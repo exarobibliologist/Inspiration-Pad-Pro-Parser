@@ -56,20 +56,21 @@ def roll_on_table(table_name, tables):
 def resolve_table_tags(text, tables, helpers, recursion_depth=0):
     """
     Recursively replaces tags, using functions from the 'helpers' dictionary.
-    The final step calls the 'math_evaluator' to handle all {} expressions.
     """
     
-    # CRUCIAL: Set self-reference for recursion (the main app does not know this function name)
+    # CRUCIAL: Set self-reference for recursion
     if 'resolve_table_tags' not in helpers: 
         helpers['resolve_table_tags'] = resolve_table_tags
         
     # Check for required helper functions by name
     if 'math_evaluator' not in helpers: return "[Fatal Error: Missing math_evaluator function]"
     if 'case_converter' not in helpers: return "[Fatal Error: Missing case_converter function]"
+    if 'list_sorter' not in helpers: return "[Fatal Error: Missing list_sorter function]"
 
     math_evaluator_func = helpers['math_evaluator']
     case_converter_func = helpers['case_converter']
-    
+    list_sorter_func = helpers['list_sorter']
+
     if recursion_depth > 20: 
         return "[Error: Max recursion depth]" 
         
@@ -82,36 +83,59 @@ def resolve_table_tags(text, tables, helpers, recursion_depth=0):
             full_tag = table_match.group(0) 
             content = table_match.group(1).strip()
             
+            # --- MODIFIER INITIALIZATION ---
             case_modifier = None
-            separator = "" 
+            separator = ", "  # <<< FIX: Default separator is now ", "
+            sort_flag = False 
+            implode_applied = False # <<< New flag for implode tracking
             
-            # Check for Case Modifier
-            case_match = re.search(r'\s+>>\s+(lower|upper|proper)$', content, re.IGNORECASE)
-            if case_match:
-                case_modifier = case_match.group(1).lower()
-                content = content[:case_match.start()].strip()
+            # --- MODIFIER PARSING LOOP (Allows chaining in any order) ---
+            while True:
+                found_modifier = False
+
+                # 1. Check for IMPLODE Clause
+                implode_match = re.search(r'\s+>>\s+implode\s+"(.*?)"$', content, re.IGNORECASE)
+                if implode_match and not implode_applied: 
+                    separator = implode_match.group(1) # Capture the separator, including ""
+                    content = content[:implode_match.start()].strip()
+                    implode_applied = True
+                    found_modifier = True
+                    continue
+
+                # 2. Check for SORT Modifier
+                sort_match = re.search(r'\s+>>\s+sort$', content, re.IGNORECASE)
+                if sort_match and sort_flag == False: 
+                    sort_flag = True
+                    content = content[:sort_match.start()].strip()
+                    found_modifier = True
+                    continue
+
+                # 3. Check for Case Modifier
+                case_match = re.search(r'\s+>>\s+(lower|upper|proper)$', content, re.IGNORECASE)
+                if case_match and case_modifier is None: 
+                    case_modifier = case_match.group(1).lower()
+                    content = content[:case_match.start()].strip()
+                    found_modifier = True
+                    continue
+                
+                if not found_modifier:
+                    break
             
-            # Check for Implode Clause
-            implode_match = re.search(r'\s+>>\s+implode\s+"(.*?)"$', content, re.IGNORECASE)
-            if implode_match:
-                separator = implode_match.group(1)
-                content = content[:implode_match.start()].strip()
+            # --- END MODIFIER PARSING ---
             
             count = 1
             table_ref = content
 
-            # Check for multi-roll count (Uses the new math_evaluator)
+            # Check for multi-roll count (Uses the math_evaluator)
             multi_roll_match_dice = re.match(r"^(\{.*?\})\s+(.*)", content)
             
             if multi_roll_match_dice:
                 roll_expression = multi_roll_match_dice.group(1)
                 table_ref = multi_roll_match_dice.group(2).strip()
                 
-                # IMPORTANT: Use math_evaluator to resolve the count expression.
                 count_str = math_evaluator_func(roll_expression, tables, helpers) 
                 
                 try:
-                    # Convert to float first to handle division results from math
                     count = max(0, int(float(count_str))) 
                 except ValueError:
                     count = 1 
@@ -127,11 +151,14 @@ def resolve_table_tags(text, tables, helpers, recursion_depth=0):
             if table_ref in tables:
                 for _ in range(count):
                     raw_result = roll_on_table(table_ref, tables)
-                    # RECURSIVE CALL: Pass the helpers dictionary
                     processed_result = resolve_table_tags(raw_result, tables, helpers, recursion_depth + 1)
                     results.append(processed_result)
                 
-                final_result = separator.join(results)
+                # Apply Sorting 
+                if sort_flag:
+                    results = list_sorter_func(results)
+                    
+                final_result = separator.join(results) # Uses the ", " default or the user-defined separator
                 
                 # Apply Case Modification
                 if case_modifier:
@@ -155,6 +182,5 @@ def resolve_table_tags(text, tables, helpers, recursion_depth=0):
             break
             
     # --- C. Final Expression Evaluation (Math/Dice/Range) ---
-    # This single call handles EVERYTHING inside {} at the end.
     text = math_evaluator_func(text, tables, helpers)
     return text

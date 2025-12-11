@@ -1,6 +1,7 @@
 ## Advanced Math Test:
 ##{1d100+3} rolls a d100 and adds 3 to the answer
 ##{42+69} does math! 42+69=111
+##{{4d8}+{8d8}} rolls multiple dice and adds them together
 ##{1d100-3} rolls a d100 and subtracts 3 from the answer
 ##{42-69} does math! 42-69=-27
 ##{42--69} picks a random number from 42 to 69
@@ -17,16 +18,21 @@
 
 ##In-line random pick: [|Happy|Sad|Angry|Confused|]
 ##[@PickMe] will draw a random item from the PickMe table
-##[@{1d20} PickMe] will roll a 1d20 and draw that many random items from the PickMe table 
-##To pick multiple items from a table and separate each pick with a comma, use implode (Put delimiters in quotes): [@4 Table >> implode ", "]
+##[@{1d20} PickMe] will roll a 1d20 and draw that many random items from the PickMe table
+##{1d[@dietype]} is a nested dice roll. It picks a random number from the dietype table, and uses it to roll a dice with that many sides.
+##[@5 Table >> sort] will pick multiple items from a table and sort them numerically or alphabetically before output.
+##To pick multiple items from a table and separate each pick with a comma, use implode (Put delimiters in quotes): [@4 Table >> sort >> implode ", "]
+##Captialize the first letter of a word with >> proper
+##lowercase a word with >> lower
+##CAPITAL LETTERS with >> upper
 
 Table: MasterTable
-<h1>The Dragon's Hoard</h1><br>You encounter: <b>[@Encounter]</b><hr><h3>Detailed Loot Analysis</h3><br>1. <b>Gold:</b> {round(sqrt({1d100000}))} gold pieces.<br>2. <b>Item:</b> [@3 LootGen >> implode ", "].
+<h1>The Dragon's Hoard</h1><br>You encounter: <b>[@5 Encounter >> sort]</b><hr><h3>Detailed Loot Analysis</h3><br>1. <b>Gold:</b> {round(sqrt({1d100000}))} gp<br>2. <b>Item:</b> [@3 LootGen >> sort >> implode "<br>"]
 
 Table: Encounter
-10:<p>A group of {floor({1d100/5})} [|Happy|Sad|Angry|Confused|] [@Humanoid]s.</p>
-<p>A solitary <b>[@Humanoid]</b> (Elite).</p>
-<p>A hidden trap! (DC {1d20+5} to spot)</p>
+10:{floor({1d1000/5})} [|Happy|Sad|Angry|Confused|] [@Humanoid]s
+[@Humanoid] (Elite)
+A hidden trap! (DC {1d20+5} to spot)
 
 Table: Humanoid
 Goblin
@@ -35,8 +41,7 @@ Orc
 Gnoll
 
 Table: LootGen
-[@LootTable] in [|pristine|enchanted|dirty|broken|cursed|unknown (DC {1d20} to identify)|] condition
-[|pristine|enchanted|dirty|broken|cursed|unknown (DC {1d20} to identify)|] [@LootTable]
+[@LootTable] in [|pristine|enchanted (DC {1d20+10} to identify enchantment)|dirty|broken|cursed (DC {1d20+10} to remove curse)|unknown (DC {1d20+10} to identify)|] condition
 
 Table: LootTable
 wine skin [|(full of wine)|(full of hard liquor)|(empty)|(water)|]
