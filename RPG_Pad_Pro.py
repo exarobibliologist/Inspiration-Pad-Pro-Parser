@@ -222,12 +222,66 @@ class IPPInterface:
             base_text = roll_on_table_func(start_table, tables) 
             final_text = resolve_table_tags_func(base_text, tables, self.ruleset_funcs) 
             
+            # --- NEW STEP: Resolve \a modifier ---
+            final_text = self.resolve_a_an_modifier(final_text)
+
             self.parse_and_insert_html(final_text)
 
             if i < num_runs - 1:
                 self.output_text.insert(tk.END, "═" * 40, "separator")
                 self.output_text.insert(tk.END, "\n")
                 
+    # --- NEW: A/An Modifier Resolver ---
+    def resolve_a_an_modifier(self, text):
+        """
+        Replaces the '\a' modifier with 'a' or 'an' based on the following word, 
+        skipping any intervening spaces or HTML tags.
+        """
+        VOWELS = "AEIOUaeiou"
+
+        def final_substitute(match):
+            # match.group(0) is '\a'
+            index = match.end()
+            text_after_a = match.string[index:]
+            
+            # Find the true start of the next word/text, skipping spaces and HTML tags
+            i = 0
+            while i < len(text_after_a):
+                char = text_after_a[i]
+                
+                if char.isspace():
+                    i += 1
+                    continue
+                    
+                if char == '<':
+                    # Skip entire HTML tag
+                    tag_end = text_after_a.find('>', i)
+                    if tag_end != -1:
+                        i = tag_end + 1
+                        continue
+                    else:
+                        i += 1 # Malformed tag, continue
+                        continue
+                
+                # Found the start of the next significant word/character
+                first_char = char
+                break
+                
+                i += 1
+            else:
+                # Reached end of string
+                first_char = ''
+
+            # Determine replacement
+            if first_char and first_char in VOWELS:
+                return "an"
+            else:
+                return "a"
+
+        # Use re.sub to find all instances of \a
+        text = re.sub(r'\\a', final_substitute, text)
+        return text
+
     # --- UI & Helper Methods ---
                 
     def setup_output_tags(self):
@@ -255,7 +309,6 @@ class IPPInterface:
                                        background="#F9F9F9") 
         
         # The 'td_cell' tag defines the appearance of each cell
-        # CHANGED: Switched relief to SOLID to force visible borders
         self.output_text.tag_configure("td_cell", 
                                        borderwidth=1, 
                                        relief=tk.SOLID, 

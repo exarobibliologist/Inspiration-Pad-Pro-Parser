@@ -25,6 +25,7 @@
 ##Captialize the first letter of a word with >> proper
 ##lowercase a word with >> lower
 ##CAPITAL LETTERS with >> upper
+##Use \a to put either "a" or "an" depending on what comes next.
 
 Table: DragonHoard
 <h1>The Dragon's Hoard</h1><br>You encounter: <b>[@5 Encounter >> sort]</b><hr><h3>Detailed Loot Analysis</h3><br>1. <b>Gold:</b> {round(sqrt({1d100000}))} gp<br>2. <b>Item:</b> [@10 LootGen >> sort >> implode "<br>"]
@@ -41,7 +42,16 @@ Orc
 Gnoll
 
 Table: LootGen
-[@LootTable] in [|pristine|enchanted (DC {1d20+10} to identify enchantment)|dirty|broken|cursed (DC {1d20+10} to remove curse)|unknown (DC {1d20+10} to identify)|] condition
+\a [|[@Condition] [@LootTable]|[@LootTable][||| in [@Condition] condition|]|]
+
+Table: Condition
+5:pristine
+5:dirty
+5:mundane/unenchanted
+4:broken (DC {1d20} to repair)
+3:unknown (DC {1d20+10} to identify)
+1:enchanted (DC {1d20+10} to identify enchantment)
+1:cursed (DC {1d20+10} to remove curse)
 
 Table: LootTable
 wine skin [|(full of wine)|(full of hard liquor)|(empty)|(water)|]
@@ -56,11 +66,11 @@ feather from an exotic bird
 fishing hook and line
 fishing net
 bottle of ink ({1d100}% left) and quill
-{1d3+1} sticks of chalk
+box of {1d3+1} sticks of chalk
 pair of manacles
 spade
 [|sewing needle|sewing needle and some thread|]
-{10--250} ft [|chain|silk rope|linen rope|]
+spool of {10--250} ft [|chain|silk rope|linen rope|]
 small vial [|(empty)|(poison DC {1d10+10})|(sleeping draught)|(hallucinogen)|(unknown)|]
 small [|leather|cloth|] bag with [|dice|figurine|] game
 playing cards
@@ -73,10 +83,11 @@ drum
 flute
 metal cup
 block of wax
-{5--42} candles
+a box of {5--42} candles
 list of names [|(some of them crossed off)|(and amounts owed)|]
 some dirty sketches
 [|clay|stone|brass|silver|gold|] figurine of a [|man|woman|horse|dragon|dog|lion|bird|phallic symbol|]
+
 
 
 

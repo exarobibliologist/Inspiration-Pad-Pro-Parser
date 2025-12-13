@@ -85,9 +85,9 @@ def resolve_table_tags(text, tables, helpers, recursion_depth=0):
             
             # --- MODIFIER INITIALIZATION ---
             case_modifier = None
-            separator = ", "  # <<< FIX: Default separator is now ", "
+            separator = ", "
             sort_flag = False 
-            implode_applied = False # <<< New flag for implode tracking
+            implode_applied = False
             
             # --- MODIFIER PARSING LOOP (Allows chaining in any order) ---
             while True:
@@ -96,7 +96,7 @@ def resolve_table_tags(text, tables, helpers, recursion_depth=0):
                 # 1. Check for IMPLODE Clause
                 implode_match = re.search(r'\s+>>\s+implode\s+"(.*?)"$', content, re.IGNORECASE)
                 if implode_match and not implode_applied: 
-                    separator = implode_match.group(1) # Capture the separator, including ""
+                    separator = implode_match.group(1) 
                     content = content[:implode_match.start()].strip()
                     implode_applied = True
                     found_modifier = True
@@ -158,7 +158,7 @@ def resolve_table_tags(text, tables, helpers, recursion_depth=0):
                 if sort_flag:
                     results = list_sorter_func(results)
                     
-                final_result = separator.join(results) # Uses the ", " default or the user-defined separator
+                final_result = separator.join(results)
                 
                 # Apply Case Modification
                 if case_modifier:
@@ -170,13 +170,48 @@ def resolve_table_tags(text, tables, helpers, recursion_depth=0):
                 text = text.replace(full_tag, f"[Error: Table '{table_ref}' not found]", 1)
                 found_action = True
                 
-        # --- B. Handle In-line Picks: [|Option1|Option2|] ---
-        opt_match = re.search(r"\[\|(.*?)\|\]", text)
-        if opt_match:
-            full_tag = opt_match.group(0)
-            options = opt_match.group(1).split('|')
-            text = text.replace(full_tag, random.choice(options), 1)
-            found_action = True
+        # --- B. Handle In-line Picks: [|Option1|Option2|] (Robust Nested Fix) ---
+        if "[|" in text and "|]" in text and not found_action:
+            # Find the last (innermost) opening delimiter
+            last_open = text.rfind('[|')
+            
+            # Search for the *matching* closing delimiter '|]' using a simple counter 
+            # to handle arbitrary nesting. This prioritizes the innermost pick.
+            
+            open_count = 1 
+            first_close_after_open = -1
+            i = last_open + 2
+            
+            # Find the matching closing bracket |]
+            while i < len(text):
+                if text[i:i+2] == '[|':
+                    open_count += 1
+                    i += 2
+                elif text[i:i+2] == '|]':
+                    open_count -= 1
+                    if open_count == 0:
+                        first_close_after_open = i
+                        break
+                    i += 2
+                else:
+                    i += 1
+            
+            # If a matching closing delimiter was found, resolve the pick
+            if first_close_after_open != -1:
+                pick_content = text[last_open + 2: first_close_after_open]
+                
+                # Parse options, allowing for empty options (e.g., |||)
+                options = pick_content.split('|')
+                
+                # Select a random option
+                selected_option = random.choice(options) if options else ""
+
+                # Replace the entire deck pick block with the selected option
+                full_tag_start = last_open
+                full_tag_end = first_close_after_open + 2
+                
+                text = text[:full_tag_start] + selected_option + text[full_tag_end:]
+                found_action = True
 
         if not found_action: 
             break

@@ -46,6 +46,7 @@ This Python script would like to eventually become the stand-in for Inspiration 
 - Simple HTML Support (this turned out a lot more complicated than I originally anticipated)
   - simple HTML [h1,h2,h3,b,i,u,p,br,hr,li]
 - Text options for upper, lower, and proper
+- Add a/an English switch logic
 
 ### Mostly Complete
   - Table Output [table, td, tr] [implemented but currently broken]
@@ -58,7 +59,6 @@ This Python script would like to eventually become the stand-in for Inspiration 
   - Define: variables
   - If/Then/Else conditionals
   - \Escape\ logic
-  - Add a/an English logic
   - Headers and Footers
 - Sub-table Interactive Rerolls (click on a particular part of the output to reroll just that section.)
 - Add HTML support
