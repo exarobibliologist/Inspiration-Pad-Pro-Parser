@@ -43,10 +43,12 @@ This Python script would like to eventually become the stand-in for Inspiration 
 - Implode uses a quote delimited modifier to determine the implosion characters to use. Examples: [@5 Table >> implode "<br>"] and [@5 Table >> implode ", "]
 - Support for floating-point and integer math
 - Support for floating-point and integer math [currently works in conjunction to dice rolls only]
-- Simple HTML Support (this turned out a lot more complicated than I originally anticipated) [simple HTML h1,h2,h3,b,i,u,p,br,hr,li are working]
-  - Text options for upper, lower, and proper
+- Simple HTML Support (this turned out a lot more complicated than I originally anticipated)
+  - simple HTML [h1,h2,h3,b,i,u,p,br,hr,li]
+- Text options for upper, lower, and proper
 
 ### Mostly Complete
+  - Table Output [table, td, tr] [implemented but currently broken]
 
 ### Future Goals
 - Add new logic syntax to IPP for better and easier random scripts

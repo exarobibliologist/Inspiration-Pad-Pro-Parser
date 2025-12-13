@@ -9,15 +9,19 @@ import sys
 class IPPInterface:
     def __init__(self, root, base_dir):
         self.root = root
-        self.root.title("RPG Pad Pro (Modular Interface)")
+        self.root.title("Inspiration Pad Pro Parser (Modular Interface)")
         
         self.root.state('zoomed') 
 
         self.COLOR_ODD = "#FFFFFF"
         self.COLOR_EVEN = "#EFEFEF"
-        self.base_dir = base_dir # Storing the base directory for file access
+        self.base_dir = base_dir 
         self.RULESET_DIR = os.path.join(base_dir, "Rules") 
-        self.ruleset_funcs = {} # Stores ALL dynamically loaded functions
+        self.ruleset_funcs = {} 
+
+        # --- State for Table Parsing ---
+        self.in_table = False
+        self.cell_content_start_index = None
 
         # --- Menu Bar (File I/O) ---
         self.create_menu()
@@ -40,7 +44,7 @@ class IPPInterface:
         self.input_text = tk.Text(left_frame, width=40, height=30, wrap=tk.WORD, undo=True, bg="#F0F0F0")
         self.input_text.pack(fill=tk.BOTH, expand=True)
         
-        # INPUT STRIPING CONFIGURATION (Active for input editor)
+        # INPUT STRIPING CONFIGURATION 
         self.input_text.tag_configure("even_line", background="#DDDDDD")
         self.input_text.bind("<KeyRelease>", lambda e: self.apply_shading(self.input_text))
         self.input_text.bind("<ButtonRelease>", lambda e: self.apply_shading(self.input_text))
@@ -71,7 +75,6 @@ class IPPInterface:
 
         # --- Right Widgets (Output) ---
         tk.Label(right_frame, text="Rich Output", font=("Arial", 11, "bold")).pack(anchor="w")
-        # Output is NOT zebra-striped
         self.output_text = tk.Text(right_frame, width=40, height=30, wrap=tk.WORD, bg=self.COLOR_ODD)
         self.output_text.pack(fill=tk.BOTH, expand=True)
         self.setup_output_tags() 
@@ -84,23 +87,20 @@ class IPPInterface:
         self.apply_shading(self.input_text)
         
     # --- FILE SYSTEM & LOADING LOGIC ---
-            
     def _ensure_rules_directory(self):
-        """Creates the 'Rules' directory if it does not exist."""
         try:
             os.makedirs(self.RULESET_DIR, exist_ok=True)
         except OSError as e:
             messagebox.showerror("File System Error", f"Could not create ruleset directory '{self.RULESET_DIR}': {e}")
             
     def refresh_ruleset_list(self):
-        """Scans the 'Rules' directory for subdirectories and populates the package selector."""
         ruleset_names = []
         try:
             for entry in os.scandir(self.RULESET_DIR):
                 if entry.is_dir():
                     ruleset_names.append(entry.name)
         except FileNotFoundError:
-            self._ensure_rules_directory()
+            self._ensure_ruleset_directory()
             return
 
         current_selection = self.package_selector.get()
@@ -118,7 +118,6 @@ class IPPInterface:
                 self.package_selector.current(0)
                 
     def _load_module_from_path(self, file_path, module_name):
-        """Safely loads a Python module from a given file path."""
         spec = importlib.util.spec_from_file_location(module_name, file_path)
         if spec is None: return None
         module = importlib.util.module_from_spec(spec)
@@ -133,7 +132,6 @@ class IPPInterface:
             sys.path.pop() 
             
     def _load_active_ruleset(self, event=None):
-        """Loads all functions from the selected ruleset folder into self.ruleset_funcs."""
         ruleset_name = self.package_selector.get()
         if ruleset_name.startswith("--"):
              self.ruleset_funcs = {}
@@ -163,16 +161,14 @@ class IPPInterface:
         # Check for essential CORE ENGINE functions 
         CORE_ENGINE_FUNCS = ['parse_tables', 'roll_on_table', 'resolve_table_tags', 'math_evaluator', 'case_converter', 'list_sorter'] 
         if not all(func in self.ruleset_funcs for func in CORE_ENGINE_FUNCS):
-            messagebox.showerror("Ruleset Error", f"The ruleset '{ruleset_name}' is missing one or more CORE ENGINE functions: {', '.join(CORE_ENGINE_FUNCS)}. Ensure 'table_parsing_rules.py', 'math_rules.py', 'case_conversion_rules.py', and 'list_manipulation_rules.py' are present.")
+            messagebox.showerror("Ruleset Error", f"The ruleset '{ruleset_name}' is missing one or more CORE ENGINE functions: {', '.join(CORE_ENGINE_FUNCS)}. Ensure necessary files are present.")
             self.ruleset_funcs = {}
             
         self.refresh_table_list()
 
 
-    # --- Generation Logic (Simplified Modular Calls) ---
-    
+    # --- Generation Logic ---
     def refresh_table_list(self):
-        """Uses the loaded parse_tables function to populate the table selector."""
         if 'parse_tables' not in self.ruleset_funcs:
             self.table_selector['values'] = ["-- Ruleset Not Loaded --"]
             self.table_selector.set("-- Ruleset Not Loaded --")
@@ -191,8 +187,6 @@ class IPPInterface:
             self.table_selector.set("")
 
     def run_generation(self):
-        """Executes the generation process using loaded ruleset functions."""
-        
         CORE_ENGINE_FUNCS = ['parse_tables', 'roll_on_table', 'resolve_table_tags', 'math_evaluator', 'case_converter', 'list_sorter']
         if not all(func in self.ruleset_funcs for func in CORE_ENGINE_FUNCS):
             messagebox.showerror("Execution Error", "Core Ruleset is not fully loaded. Check for errors during load.")
@@ -226,8 +220,6 @@ class IPPInterface:
 
         for i in range(num_runs):
             base_text = roll_on_table_func(start_table, tables) 
-            
-            # Pass the entire ruleset dictionary as the 'helpers' argument
             final_text = resolve_table_tags_func(base_text, tables, self.ruleset_funcs) 
             
             self.parse_and_insert_html(final_text)
@@ -239,8 +231,10 @@ class IPPInterface:
     # --- UI & Helper Methods ---
                 
     def setup_output_tags(self):
-        """Defines the visual styles for the HTML tags for the output window."""
+        """Defines the visual styles for the HTML tags for the output window, including table styles."""
         base_font = "Arial"
+        
+        # Base Text Tags
         self.output_text.tag_configure("bold", font=(base_font, 10, "bold"))
         self.output_text.tag_configure("italic", font=(base_font, 10, "italic"))
         self.output_text.tag_configure("underline", underline=True)
@@ -252,6 +246,24 @@ class IPPInterface:
         self.output_text.tag_configure("green", foreground="green")
         self.output_text.tag_configure("gray", foreground="gray")
         self.output_text.tag_configure("separator", foreground="#888888", justify='center', spacing1=10, spacing3=10)
+        
+        # --- Table Tags ---
+        self.output_text.tag_configure("table_border", 
+                                       lmargin1=10, 
+                                       lmargin2=10,
+                                       rmargin=10,  
+                                       background="#F9F9F9") 
+        
+        # The 'td_cell' tag defines the appearance of each cell
+        # CHANGED: Switched relief to SOLID to force visible borders
+        self.output_text.tag_configure("td_cell", 
+                                       borderwidth=1, 
+                                       relief=tk.SOLID, 
+                                       font=(base_font, 10), 
+                                       lmargin1=5, 
+                                       lmargin2=5,
+                                       rmargin=5) 
+
 
     def create_menu(self):
         menubar = tk.Menu(self.root)
@@ -264,18 +276,12 @@ class IPPInterface:
         self.root.config(menu=menubar)
 
     def load_sample_script(self):
-        """
-        Loads the sample script content from the 'sample_script.txt' file 
-        located in the base directory.
-        """
         sample_file_path = os.path.join(self.base_dir, "sample_script.txt")
         content = ""
-        
         try:
             with open(sample_file_path, 'r', encoding='utf-8') as f:
                 content = f.read()
         except FileNotFoundError:
-            # Fallback content if the file is missing
             content = (
                 "## ERROR: sample_script.txt not found.\n"
                 "## Please create a file named 'sample_script.txt' in the application directory.\n\n"
@@ -283,15 +289,12 @@ class IPPInterface:
                 "1:{1d6} Random result.\n"
             )
         except Exception as e:
-            # Handle other possible file reading errors
             content = f"## ERROR loading sample_script.txt: {e}\n"
 
         self.input_text.delete("1.0", tk.END)
         self.input_text.insert(tk.END, content)
 
-
     def apply_shading(self, text_widget):
-        """Applies zebra-striping ONLY to the provided text_widget (intended for input_text)."""
         text_widget.tag_remove("even_line", "1.0", "end")
         last_index = text_widget.index("end-1c")
         try:
@@ -326,34 +329,120 @@ class IPPInterface:
                 messagebox.showerror("Error", f"Could not save file: {e}")
 
     def parse_and_insert_html(self, text_content):
+        # NOTE: This method is now correctly indented inside the class!
         tokens = re.split(r'(<[^>]+>)', text_content)
         active_tags = set()
+        table_start_index = None 
+        
         for token in tokens:
             if not token: continue
+            
+            # Check if the token is an HTML tag
             if token.startswith("<") and token.endswith(">"):
                 tag_lower = token.lower()
+                
+                # --- Block and Separator Tags (P, BR, HR) ---
                 if tag_lower == "<br>": self.output_text.insert(tk.END, "\n")
                 elif tag_lower == "<p>": self.output_text.insert(tk.END, "\n\n")
-                elif tag_lower == "<hr>": self.output_text.insert(tk.END, "\n" + "-"*40 + "\n")
+                elif tag_lower == "<hr>": self.output_text.insert(tk.END, "\n" + "—" * 40 + "\n")
                 elif tag_lower == "<li>": self.output_text.insert(tk.END, "\n • ")
-                elif tag_lower == "<b>": active_tags.add("bold")
-                elif tag_lower == "<i>": active_tags.add("italic")
-                elif tag_lower == "<u>": active_tags.add("underline")
-                elif tag_lower == "<h1>": self.output_text.insert(tk.END, "\n"); active_tags.add("h1")
-                elif tag_lower == "<h2>": self.output_text.insert(tk.END, "\n"); active_tags.add("h2")
-                elif tag_lower == "<h3>": self.output_text.insert(tk.END, "\n"); active_tags.add("h3")
-                elif tag_lower == "<red>": active_tags.add("red")
-                elif tag_lower == "<blue>": active_tags.add("blue")
-                elif tag_lower == "</b>": active_tags.discard("bold")
-                elif tag_lower == "</i>": active_tags.discard("italic")
-                elif tag_lower == "</u>": active_tags.discard("underline")
-                elif tag_lower == "</h1>": active_tags.discard("h1"); self.output_text.insert(tk.END, "\n")
-                elif tag_lower == "</h2>": active_tags.discard("h2"); self.output_text.insert(tk.END, "\n")
-                elif tag_lower == "</h3>": active_tags.discard("h3"); self.output_text.insert(tk.END, "\n")
-                elif tag_lower == "</red>": active_tags.discard("red")
-                elif tag_lower == "</blue>": active_tags.discard("blue")
+                
+                # --- TABLE Tags ---
+                elif tag_lower.startswith("<table"):
+                    self.in_table = True
+                    self.output_text.insert(tk.END, "\n")
+                    table_start_index = self.output_text.index(tk.END + "-1c")
+                    # Insert a wide placeholder to help the tag span correctly
+                    self.output_text.insert(tk.END, " " * 80 + "\n") 
+                    
+                elif tag_lower.startswith("<tr"):
+                    if self.in_table:
+                        # Start a new row, ensuring a fresh line.
+                        if table_start_index != self.output_text.index(tk.END + "-1c"):
+                             # Insert a newline only if the current row isn't immediately after <table>
+                             self.output_text.insert(tk.END, "\n")
+                             
+                # Check for start of <td> or <th> tag (handles attributes like colspan)
+                # CRITICAL FIX: checking .startswith instead of exact match to catch attributes
+                elif token.lower().startswith("<td") or token.lower().startswith("<th"):
+                    is_header = token.lower().startswith("<th")
+                    if self.in_table:
+                        
+                        # 1. Parse colspan attribute from the full token
+                        colspan_match = re.search(r'colspan\s*=\s*["\']?(\d+)["\']?', token, re.IGNORECASE)
+                        colspan_value = int(colspan_match.group(1)) if colspan_match else 1
+                        
+                        # Insert a visual separator before the cell content
+                        # Check if we are at the start of a line (aside from margins)
+                        current_line_start = self.output_text.index("insert linestart")
+                        current_pos = self.output_text.index("insert")
+                        
+                        # If we aren't at the start of the line, we need a separator
+                        if current_pos != current_line_start:
+                             self.output_text.insert(tk.END, " | ")
+
+                        # 2. Apply extra visual padding for colspan
+                        if colspan_value > 1:
+                            # Insert spaces per extra column spanned
+                            self.output_text.insert(tk.END, " " * 5 * (colspan_value - 1))
+                            
+                        # If it's a header, activate bold
+                        if is_header: active_tags.add("bold")
+                            
+                        # Mark the start of the content inside the <td> tag
+                        self.cell_content_start_index = self.output_text.index(tk.END)
+                        
+                elif tag_lower == "</td>" or tag_lower == "</th>": 
+                    if self.in_table and self.cell_content_start_index:
+                        # Apply the td_cell styling to everything since the last <td>
+                        self.output_text.tag_add("td_cell", self.cell_content_start_index, self.output_text.index(tk.END))
+                        
+                        # If it was a header, deactivate bold (check against the closing tag)
+                        if tag_lower == "</th>": active_tags.discard("bold")
+                            
+                        self.cell_content_start_index = None # Reset cell tracking
+                        
+                elif tag_lower == "</tr>":
+                    if self.in_table:
+                        # Add some space after the row for better visual separation of rows
+                        self.output_text.insert(tk.END, " \n") 
+                        
+                elif tag_lower == "</table>":
+                    if self.in_table:
+                        self.in_table = False
+                        
+                        # Apply the 'table_border' tag to the entire block inserted since <table>
+                        if table_start_index:
+                            self.output_text.tag_add("table_border", table_start_index, self.output_text.index(tk.END))
+                        self.output_text.insert(tk.END, "\n")
+                        table_start_index = None
+                        
+                # --- Text Formatting Tags ---
+                elif tag_lower.startswith("</"): # Closing tags
+                    tag_name = tag_lower[2:-1]
+                    if tag_name in ["b", "i", "u", "h1", "h2", "h3", "red", "blue"]:
+                        # Convert simple tag names back to their full class names
+                        full_tag_map = {"b": "bold", "i": "italic", "u": "underline", 
+                                        "red": "red", "blue": "blue"}
+                        full_tag_name = full_tag_map.get(tag_name, tag_name)
+                        active_tags.discard(full_tag_name)
+                        if full_tag_name.startswith("h"): self.output_text.insert(tk.END, "\n")
+
+                elif tag_lower.startswith("<"): # Opening tags
+                    tag_name = tag_lower[1:-1]
+                    if tag_name == "b": active_tags.add("bold")
+                    elif tag_name == "i": active_tags.add("italic")
+                    elif tag_name == "u": active_tags.add("underline")
+                    elif tag_name == "h1": active_tags.add("h1"); self.output_text.insert(tk.END, "\n")
+                    elif tag_name == "h2": active_tags.add("h2"); self.output_text.insert(tk.END, "\n")
+                    elif tag_name == "h3": active_tags.add("h3"); self.output_text.insert(tk.END, "\n")
+                    elif tag_name == "red": active_tags.add("red")
+                    elif tag_name == "blue": active_tags.add("blue")
+                
             else:
                 self.output_text.insert(tk.END, token, tuple(active_tags))
+                
+        # Final newline after parsing the content
         self.output_text.insert(tk.END, "\n")
 
     def clear_output(self):
