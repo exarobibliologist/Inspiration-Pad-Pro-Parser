@@ -1,9 +1,12 @@
-Table: MasterTable
-[@IpsumLoremGenerator >> proper >> implode " "][@{1d20} IpsumLoremGenerator >> implode " "].
+Table: ParagraphWriter
+[@{1d20} IpsumLoremSentence >> implode "<br><br>"]
+
+Table: IpsumLoremSentence
+[@IpsumLoremGenerator >> proper] [@{1d20} IpsumLoremGenerator >> implode " "].
 
 Table: IpsumLoremGenerator
 [@HumanName]
-[@LatinName]
+100:[@LatinName]
 
 Table: HumanName
 5:[@HumanNameSegment][@HumanNameSegment][@HumanNameSegment][@HumanNameEnd]
