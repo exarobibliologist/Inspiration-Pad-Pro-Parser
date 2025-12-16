@@ -56,6 +56,7 @@ def roll_on_table(table_name, tables):
 def resolve_table_tags(text, tables, helpers, recursion_depth=0):
     """
     Recursively replaces tags, using functions from the 'helpers' dictionary.
+    Includes the critical fix to ensure variables are assigned before they are used.
     """
     
     # CRUCIAL: Set self-reference for recursion
@@ -74,14 +75,26 @@ def resolve_table_tags(text, tables, helpers, recursion_depth=0):
     if recursion_depth > 20: 
         return "[Error: Max recursion depth]" 
         
+    # --- MAIN RESOLUTION LOOP ---
+    # We iterate until no changes are made in a full cycle.
     while True:
+        original_text = text
+        
+        # STEP 1: RESOLVE DICE/MATH/VARIABLE ASSIGNMENT/RECALL (Highest Priority)
+        # This handles: {1d6}, {calc(...)}, {identify} (recall), and {$identify=...} (assignment)
+        # Running this FIRST ensures variables are set and replaced before the tag parser sees them.
+        text = math_evaluator_func(text, tables, helpers)
+        
         found_action = False
         
-        # --- A. Handle Table Calls: [@Table] with modifiers ---
+        # STEP 2: HANDLE TABLE CALLS: [@Table] with modifiers
         table_match = re.search(r"\[@(.*?)\]", text)
         if table_match:
             full_tag = table_match.group(0) 
             content = table_match.group(1).strip()
+
+            # NOTE: The variable pre-resolve is no longer needed here, 
+            # as Step 1 has already converted [@{$identify} LootGen] to [@18 LootGen].
             
             # --- MODIFIER INITIALIZATION ---
             case_modifier = None
@@ -126,31 +139,33 @@ def resolve_table_tags(text, tables, helpers, recursion_depth=0):
             count = 1
             table_ref = content
 
-            # Check for multi-roll count (Uses the math_evaluator)
-            multi_roll_match_dice = re.match(r"^(\{.*?\})\s+(.*)", content)
+            # Check for multi-roll count (Standard "Number Name" format)
+            match_multi_num = re.match(r"^(\d+)\s+(.*)", content)
             
-            if multi_roll_match_dice:
-                roll_expression = multi_roll_match_dice.group(1)
-                table_ref = multi_roll_match_dice.group(2).strip()
-                
-                count_str = math_evaluator_func(roll_expression, tables, helpers) 
-                
-                try:
-                    count = max(0, int(float(count_str))) 
-                except ValueError:
-                    count = 1 
-                    table_ref = content
+            if match_multi_num:
+                count = int(match_multi_num.group(1))
+                table_ref = match_multi_num.group(2).strip()
+            
             else:
-                match_multi_num = re.match(r"^(\d+)\s+(.*)", content)
-                if match_multi_num:
-                    count = int(match_multi_num.group(1))
-                    table_ref = match_multi_num.group(2).strip()
+                # Fallback: Check for Dice/Math expressions that weren't fully resolved
+                multi_roll_match_dice = re.match(r"^(\{.*?\})\s+(.*)", content)
+                if multi_roll_match_dice:
+                    roll_expression = multi_roll_match_dice.group(1)
+                    table_ref = multi_roll_match_dice.group(2).strip()
+                    # Reroll the count expression just in case, though Step 1 should prevent this
+                    count_str = math_evaluator_func(roll_expression, tables, helpers) 
+                    try:
+                        count = max(0, int(float(count_str))) 
+                    except ValueError:
+                        count = 1 
+                        table_ref = content
 
             # Perform generation
             results = []
             if table_ref in tables:
                 for _ in range(count):
                     raw_result = roll_on_table(table_ref, tables)
+                    # Recursive call
                     processed_result = resolve_table_tags(raw_result, tables, helpers, recursion_depth + 1)
                     results.append(processed_result)
                 
@@ -170,13 +185,10 @@ def resolve_table_tags(text, tables, helpers, recursion_depth=0):
                 text = text.replace(full_tag, f"[Error: Table '{table_ref}' not found]", 1)
                 found_action = True
                 
-        # --- B. Handle In-line Picks: [|Option1|Option2|] (Robust Nested Fix) ---
+        # STEP 3: Handle In-line Picks: [|Option1|Option2|] (Robust Nested Fix)
         if "[|" in text and "|]" in text and not found_action:
             # Find the last (innermost) opening delimiter
             last_open = text.rfind('[|')
-            
-            # Search for the *matching* closing delimiter '|]' using a simple counter 
-            # to handle arbitrary nesting. This prioritizes the innermost pick.
             
             open_count = 1 
             first_close_after_open = -1
@@ -200,7 +212,7 @@ def resolve_table_tags(text, tables, helpers, recursion_depth=0):
             if first_close_after_open != -1:
                 pick_content = text[last_open + 2: first_close_after_open]
                 
-                # Parse options, allowing for empty options (e.g., |||)
+                # Parse options, allowing for empty options (e.g., |||
                 options = pick_content.split('|')
                 
                 # Select a random option
@@ -213,9 +225,15 @@ def resolve_table_tags(text, tables, helpers, recursion_depth=0):
                 text = text[:full_tag_start] + selected_option + text[full_tag_end:]
                 found_action = True
 
-        if not found_action: 
+        if found_action:
+            # If a tag was resolved (Step 2 or 3), continue the loop 
+            # to check for nested tags and new math/variables created by the result.
+            continue
+            
+        # If no tag was resolved and no math/variables were resolved (text is unchanged from original_text), 
+        # we are done.
+        if original_text == text:
             break
             
-    # --- C. Final Expression Evaluation (Math/Dice/Range) ---
-    text = math_evaluator_func(text, tables, helpers)
+    # The final math_evaluator_func call at the end is no longer necessary as it runs first in the loop.
     return text

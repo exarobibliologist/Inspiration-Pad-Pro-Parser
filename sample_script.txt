@@ -26,9 +26,10 @@
 ##lowercase a word with >> lower
 ##CAPITAL LETTERS with >> upper
 ##Use \a to put either "a" or "an" depending on what comes next.
+##Use {$name ="number or dice roll"} to assign a variable to a name, then recall the variable with {$name}
 
 Table: DragonHoard
-<h1>The Dragon's Hoard</h1><br>You encounter: <b>[@5 Encounter >> sort]</b><hr><h3>Detailed Loot Analysis</h3><br>1. <b>Gold:</b> {round(sqrt({1d100000}))} gp<br>2. <b>Items:</b> [@{5d10} LootGen >> sort >> implode "<br>"]
+<h1>The Dragon's Hoard</h1><br>You encounter: <b>[@5 Encounter >> sort]</b><hr><h3>Detailed Loot Analysis</h3><br>1. <b>Gold:</b> {round(sqrt({1d100000}))} gp<br>2. <b>{$identify ="{5d5}"} Items:</b> [@{$identify} LootGen >> sort >> implode "<br>"]
 
 Table: Encounter
 {floor({1d10000/5})} [|Happy|Sad|Angry|Confused|] [@Humanoid]s
@@ -47,16 +48,16 @@ Table: LootGen
 Table: Condition
 5:pristine
 5:dirty
-5:mundane/unenchanted
-4:broken (DC {1d20} to repair)
-3:unknown (DC {1d20+10} to identify)
-1:enchanted (DC {1d20+10} to identify enchantment)
-1:cursed (DC {1d20+10} to remove curse)
+5:unenchanted/mundane
+4:broken (DC {$identify} to repair)
+3:unknown (DC {{$identify}+10} to identify)
+1:enchanted (DC {{$identify}+10} to identify enchantment)
+1:cursed (DC {{$identify}+10} to remove curse)
 
 Table: LootTable
 wine skin [|(full of wine)|(full of hard liquor)|(empty)|(water)|]
-bottle of hard liquor
-bottle of [|fine|awful|] [|wine|beer|mead|]
+[|open ||||]bottle of hard liquor
+[|open ||||]bottle of [|fine|awful|] [|wine|beer|mead|]
 small pouch of black lotus extract (about {1d100}% of the pouch is left)
 religious [|medallion|icon|] worth ({1d10*10} sp)
 lock of [|brunette|blonde|red|] hair
@@ -83,10 +84,15 @@ drum
 flute
 metal cup
 block of wax
-a box of {5--42} candles
+box of {5--42} candles
 list of names [|(some of them crossed off)|(and amounts owed)|]
 some dirty sketches
 [|clay|stone|brass|silver|gold|] figurine of a [|man|woman|horse|dragon|dog|lion|bird|phallic symbol|]
+
+
+
+
+
 
 
 

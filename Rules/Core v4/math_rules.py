@@ -48,24 +48,116 @@ def _resolve_dice(text):
     text = re.sub(range_pattern, replace_range_match, text)
     return text
 
-# --- Public Function for Math Evaluation ---
+def _resolve_arithmetic(text):
+    """
+    Resolves general arithmetic expressions (e.g., {42+69} or {100-25}).
+    """
+    arithmetic_pattern = r"\{(.*?)\}"
+
+    def replace_arithmetic_match(match):
+        expression = match.group(1).strip()
+        
+        # Sanity check: ensure expression looks like math 
+        if re.match(r'^[\d\s\.\+\-\*/\(\)]+$', expression.replace('//', '').replace('--', '')):
+            try:
+                # Safely evaluate the arithmetic expression
+                result = eval(expression, {"__builtins__": None}, {})
+                
+                if result == int(result):
+                    return str(int(result))
+                # Max 8 decimal places for float results, strip trailing zeros/dot
+                return f"{result:.8f}".rstrip('0').rstrip('.')
+                
+            except Exception:
+                return match.group(0) 
+                
+        return match.group(0)
+
+    return re.sub(arithmetic_pattern, replace_arithmetic_match, text)
+
+
+def _resolve_simple_math_only(text):
+    """
+    Performs the final resolution steps: Dice/Range, then simple Arithmetic.
+    """
+    text = _resolve_dice(text)
+    text = _resolve_arithmetic(text)
+    return text
+
+
+# --- Public Function for Math Evaluation (Updated) ---
 
 def math_evaluator(text, tables, helpers):
     """
     Evaluates advanced math expressions, including nested table rolls,
-    general arithmetic, and then resolves standard dice/range rolls.
+    general arithmetic, and resolves variable assignment/recall.
     """
     resolve_tags_func = helpers.get('resolve_table_tags')
     
+    # 0. Get or initialize variables storage (set in run_generation)
+    variables = helpers.get('variables', {})
+
+    # --- A. Resolve Variable Assignments and Recalls (Loop until stable) ---
+    while True:
+        found_var_action = False
+
+        # 1. Assignment: {$var_name = "value or dice expression"}
+        assign_match = re.search(r'\{\$(\w+)\s*=\s*"(.*?)"\}', text)
+        if assign_match:
+            full_tag = assign_match.group(0)
+            var_name = assign_match.group(1)
+            raw_value_exp = assign_match.group(2)
+            
+            # Resolve the expression using simple math resolution (Dice/Arithmetic)
+            resolved_value = _resolve_simple_math_only(raw_value_exp)
+            
+            # Try to store as a number for later math operations
+            try:
+                # Convert the resolved string back to a float/int
+                number_value = float(resolved_value) 
+                
+                # Store the string representation (which is cleaner for output)
+                variables[var_name] = resolved_value
+                
+                # Replace the tag with the resolved value (as requested for immediate output)
+                text = text.replace(full_tag, resolved_value, 1)
+                found_var_action = True
+                continue
+            except ValueError:
+                # If it's not a number (e.g., "[Err]"), store the error string.
+                variables[var_name] = resolved_value
+                text = text.replace(full_tag, resolved_value, 1)
+                found_var_action = True
+                continue
+
+        # 2. Recall: {$var_name}
+        recall_match = re.search(r'\{\$(\w+)\}', text)
+        if recall_match:
+            full_tag = recall_match.group(0)
+            var_name = recall_match.group(1)
+            
+            if var_name in variables:
+                text = text.replace(full_tag, variables[var_name], 1)
+            else:
+                text = text.replace(full_tag, f"[Error: Variable '{var_name}' not defined]", 1)
+            
+            found_var_action = True
+            continue
+            
+        if not found_var_action:
+            break
+
+    # If the recursive tag resolver is missing (shouldn't happen in a full IPP run)
     if not resolve_tags_func:
-        return _resolve_dice(text)
+        return _resolve_dice_and_arithmetic(text)
+
 
     FUNCTIONS = ["max", "min", "avg", "sqrt", "abs", "round", "floor", "ceil", "sign"]
     
     # Regex to capture the entire function call: {func(contents)}
     math_pattern = r"\{(" + "|".join(FUNCTIONS) + r")\s*\((.*?)\)\}"
 
-    # --- Inner Replacement Function for Complex Math ---
+    # --- B. Resolve Complex Math Functions ---
     def replace_math_match(match):
         func_name = match.group(1).lower()
         contents = match.group(2).strip()
@@ -136,7 +228,7 @@ def math_evaluator(text, tables, helpers):
 
             if result == int(result):
                 return str(int(result))
-            return f"{result:.8f}"
+            return f"{result:.8f}".rstrip('0').rstrip('.')
             
         except Exception as e:
             return f"[Math Execution Error: {e}]"
@@ -145,31 +237,7 @@ def math_evaluator(text, tables, helpers):
     while re.search(math_pattern, text, re.IGNORECASE):
         text = re.sub(math_pattern, replace_math_match, text, flags=re.IGNORECASE)
         
-    # 2. Resolve Simple Expressions, Dice, and Ranges (Uses the new {min--max} syntax)
-    text = _resolve_dice(text)
-
-    # 3. Resolve General Arithmetic Expressions (e.g., {42+69} or {100-25})
-    arithmetic_pattern = r"\{(.*?)\}"
-
-    def replace_arithmetic_match(match):
-        expression = match.group(1).strip()
-        
-        # Sanity check: ensure expression looks like math and doesn't contain the old floor division symbol.
-        if re.match(r'^[\d\s\.\+\-\*/\(\)]+$', expression.replace('//', '').replace('--', '')):
-            try:
-                # Safely evaluate the arithmetic expression
-                # Note: Python's standard division (/) results in a float.
-                result = eval(expression, {"__builtins__": None}, {})
-                
-                if result == int(result):
-                    return str(int(result))
-                return f"{result:.8f}"
-                
-            except Exception:
-                return match.group(0) 
-                
-        return match.group(0)
-
-    text = re.sub(arithmetic_pattern, replace_arithmetic_match, text)
+    # 2. Resolve final simple math (Dice/Range and Arithmetic)
+    text = _resolve_simple_math_only(text)
 
     return text

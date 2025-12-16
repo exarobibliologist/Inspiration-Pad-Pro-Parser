@@ -100,7 +100,7 @@ class IPPInterface:
                 if entry.is_dir():
                     ruleset_names.append(entry.name)
         except FileNotFoundError:
-            self._ensure_ruleset_directory()
+            self._ensure_rules_directory()
             return
 
         current_selection = self.package_selector.get()
@@ -217,12 +217,17 @@ class IPPInterface:
                 return
 
         self.output_text.delete("1.0", tk.END)
+        
+        # Initialize the variables dictionary for this run
+        self.ruleset_funcs['variables'] = {}
 
         for i in range(num_runs):
             base_text = roll_on_table_func(start_table, tables) 
+            
+            # --- Resolve Tags (now includes robust deck pick resolution) ---
             final_text = resolve_table_tags_func(base_text, tables, self.ruleset_funcs) 
             
-            # --- NEW STEP: Resolve \a modifier ---
+            # --- Resolve \a modifier ---
             final_text = self.resolve_a_an_modifier(final_text)
 
             self.parse_and_insert_html(final_text)
@@ -231,7 +236,7 @@ class IPPInterface:
                 self.output_text.insert(tk.END, "═" * 40, "separator")
                 self.output_text.insert(tk.END, "\n")
                 
-    # --- NEW: A/An Modifier Resolver ---
+    # --- A/An Modifier Resolver ---
     def resolve_a_an_modifier(self, text):
         """
         Replaces the '\a' modifier with 'a' or 'an' based on the following word, 
@@ -240,7 +245,7 @@ class IPPInterface:
         VOWELS = "AEIOUaeiou"
 
         def final_substitute(match):
-            # match.group(0) is '\a'
+            # Find the position right after the '\a' tag
             index = match.end()
             text_after_a = match.string[index:]
             
@@ -311,7 +316,7 @@ class IPPInterface:
         # The 'td_cell' tag defines the appearance of each cell
         self.output_text.tag_configure("td_cell", 
                                        borderwidth=1, 
-                                       relief=tk.SOLID, 
+                                       relief=tk.RIDGE, 
                                        font=(base_font, 10), 
                                        lmargin1=5, 
                                        lmargin2=5,
@@ -382,7 +387,6 @@ class IPPInterface:
                 messagebox.showerror("Error", f"Could not save file: {e}")
 
     def parse_and_insert_html(self, text_content):
-        # NOTE: This method is now correctly indented inside the class!
         tokens = re.split(r'(<[^>]+>)', text_content)
         active_tags = set()
         table_start_index = None 
@@ -416,7 +420,6 @@ class IPPInterface:
                              self.output_text.insert(tk.END, "\n")
                              
                 # Check for start of <td> or <th> tag (handles attributes like colspan)
-                # CRITICAL FIX: checking .startswith instead of exact match to catch attributes
                 elif token.lower().startswith("<td") or token.lower().startswith("<th"):
                     is_header = token.lower().startswith("<th")
                     if self.in_table:
@@ -426,7 +429,6 @@ class IPPInterface:
                         colspan_value = int(colspan_match.group(1)) if colspan_match else 1
                         
                         # Insert a visual separator before the cell content
-                        # Check if we are at the start of a line (aside from margins)
                         current_line_start = self.output_text.index("insert linestart")
                         current_pos = self.output_text.index("insert")
                         
@@ -497,6 +499,7 @@ class IPPInterface:
                 
         # Final newline after parsing the content
         self.output_text.insert(tk.END, "\n")
+
 
     def clear_output(self):
         self.output_text.delete("1.0", tk.END)
