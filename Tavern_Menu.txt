@@ -1,5 +1,5 @@
 Table: Menu
-<h1>[@MasterTavernName]</h1><h2>Breakfast Menu</h2>[@BreakfastMenu]<br><h2>Dinner Menu</h2>[@DinnerMenu]<br>
+<h1>[@MasterTavernName]</h1><h2>Breakfast Menu = {$costofbreakfast= "{10--20}"}sp</h2>[@BreakfastMenu]<br><h2>Dinner Menu {$costofdinner= "{10--20}"}sp</h2>[@DinnerMenu]<br>
 
 Table: MasterTavernName
 [|[@Owner_Name >> proper]'s|The|] [@TavernsA] [@TavernsB] [|Inn|Tavern|Restaurant|Tavern and Inn| | | | |]
@@ -171,22 +171,10 @@ Whisky
 Venison
 
 Table: BreakfastMenu
-</h3>[@5 BreakfastCost >> implode "<br>"]<br><h3>Pick 2 side dishes:</h3>[@5 BreakfastSidesCost >> implode "<br>"]
-
-Table: BreakfastCost
-[@Breakfast] = {10-20}sp
-
-Table: BreakfastSidesCost
-[@BreakfastSides] = {2-10}sp
+</h3>[@5 Breakfast >> implode "<br>"]<br><h3>Pick 2 side dishes for {ceil({{$costofbreakfast} / 3})}sp</h3>[@5 BreakfastSides >> implode "<br>"]
 
 Table: DinnerMenu
-</h3>[@5 DinnerCost >> implode "<br>"]<br><h3>Pick 2 side dishes:</h3>[@5 DinnerSidesCost >> implode "<br>"]
-
-Table: DinnerCost
-[@Dinner] = {10-20}sp
-
-Table: DinnerSidesCost
-[@DinnerSides] = {2-10}sp
+</h3>[@5 Dinner >> implode "<br>"]<br><h3>Pick 2 side dishes for {ceil({{$costofdinner} / 3})}sp</h3>[@5 DinnerSides >> implode "<br>"]
 
 Table: Breakfast
 [|Scrambled|Fried|Poached|Hard Boiled|Soft Boiled|Deviled|] Eggs [|with herbs|with cheese| | | |]
@@ -230,7 +218,7 @@ Ranger-Style [@DinnerPrep] [@MealAnimal]
 [@MealAnimal]-Broth Noodles
 Herbal-Broth Noodles
 [@MealAnimal] [|Sausage|Bacon|Steak] [| | |& Dumplings|& Gravy|]
-[@MealAnimal] [|Dragonfire ||][|Chili|Chili con Carne|]
+[@MealAnimal][||| Dragonfire |][|Chili|Chili con Carne|]
 
 Table: DinnerPrep
 Buttery
@@ -785,6 +773,7 @@ zylphia
 cecilia
 cordelia
 lavinia
+
 
 
 
