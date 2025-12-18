@@ -47,21 +47,21 @@ This Python script would like to eventually become the stand-in for Inspiration 
   - simple HTML [h1,h2,h3,b,i,u,p,br,hr,li]
 - Text options for upper, lower, and proper
 - Add a/an English switch logic
+- {variable} assignment
 
 ### Mostly Complete
-  - Table Output [table, td, tr] [implemented but currently broken]
+  - Table Output [table, td, tr] [implemented but currently broken in output viewer]
 
 ### Future Goals
 - Add new logic syntax to IPP for better and easier random scripts
   - ! Deck picks
-  - {variable} assignment
   - Set: variables
   - Define: variables
   - If/Then/Else conditionals
   - \Escape\ logic
   - Headers and Footers
 - Sub-table Interactive Rerolls (click on a particular part of the output to reroll just that section.)
-- Add HTML support
+- Full HTML support
   - Table Output
   - Images
   - CSS Support?
