@@ -9,7 +9,7 @@ import sys
 class IPPInterface:
     def __init__(self, root, base_dir):
         self.root = root
-        self.root.title("Inspiration Pad Pro Parser (Modular Interface)")
+        self.root.title("RPG Pad Pro Parser")
         
         self.root.state('zoomed') 
 
