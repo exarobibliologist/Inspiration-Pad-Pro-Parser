@@ -5,6 +5,8 @@ import re
 import os 
 import importlib.util 
 import sys 
+import webbrowser
+import tempfile
 
 class IPPInterface:
     def __init__(self, root, base_dir):
@@ -68,13 +70,18 @@ class IPPInterface:
         self.run_count_entry.pack(pady=5)
 
         self.generate_btn = tk.Button(control_frame, text="Generate >>", command=self.run_generation, height=2, bg="#dddddd", font=("Arial", 10, "bold"))
-        self.generate_btn.pack(pady=30)
+        self.generate_btn.pack(pady=(30, 5))
+
+        # --- NEW BROWSER BUTTON ---
+        self.browser_btn = tk.Button(control_frame, text="Generate In Browser...", command=self.run_generation_browser)
+        self.browser_btn.pack(pady=(0, 20))
+        # --------------------------
 
         self.clear_btn = tk.Button(control_frame, text="Clear Output", command=self.clear_output)
         self.clear_btn.pack(side=tk.BOTTOM, pady=20)
 
         # --- Right Widgets (Output) ---
-        tk.Label(right_frame, text="Rich Output", font=("Arial", 11, "bold")).pack(anchor="w")
+        tk.Label(right_frame, text="Simple Output", font=("Arial", 11, "bold")).pack(anchor="w")
         self.output_text = tk.Text(right_frame, width=40, height=30, wrap=tk.WORD, bg=self.COLOR_ODD)
         self.output_text.pack(fill=tk.BOTH, expand=True)
         self.setup_output_tags() 
@@ -218,16 +225,15 @@ class IPPInterface:
 
         self.output_text.delete("1.0", tk.END)
         
-        # --- INITIALIZE VARIABLES & HELPERS ---
+        # Initialize the variables dictionary for this run
         self.ruleset_funcs['variables'] = {}
-        
-        # NEW: Pass the UI update function so the engine can keep the window alive
-        self.ruleset_funcs['gui_update'] = self.root.update
+        # Pass UI update to prevent freezing
+        self.ruleset_funcs['gui_update'] = self.root.update 
 
         for i in range(num_runs):
             base_text = roll_on_table_func(start_table, tables) 
             
-            # --- Resolve Tags (now includes robust deck pick resolution) ---
+            # --- Resolve Tags ---
             final_text = resolve_table_tags_func(base_text, tables, self.ruleset_funcs) 
             
             # --- Resolve \a modifier ---
@@ -238,62 +244,128 @@ class IPPInterface:
             if i < num_runs - 1:
                 self.output_text.insert(tk.END, "═" * 40, "separator")
                 self.output_text.insert(tk.END, "\n")
-                
+
+    def run_generation_browser(self):
+        CORE_ENGINE_FUNCS = ['parse_tables', 'roll_on_table', 'resolve_table_tags', 'math_evaluator', 'case_converter', 'list_sorter']
+        if not all(func in self.ruleset_funcs for func in CORE_ENGINE_FUNCS):
+            messagebox.showerror("Execution Error", "Core Ruleset is not fully loaded.")
+            return
+
+        parse_tables_func = self.ruleset_funcs['parse_tables']
+        roll_on_table_func = self.ruleset_funcs['roll_on_table']
+        resolve_table_tags_func = self.ruleset_funcs['resolve_table_tags']
+
+        script = self.input_text.get("1.0", tk.END)
+        tables = parse_tables_func(script)
+
+        if not tables:
+            messagebox.showinfo("Info", "No tables found in script.")
+            return
+
+        try:
+            num_runs = int(self.run_count_entry.get())
+        except ValueError:
+            messagebox.showerror("Input Error", "Please enter a valid number.")
+            return
+
+        start_table = self.table_selector.get()
+        if not start_table or start_table not in tables:
+            if tables:
+                start_table = list(tables.keys())[0]
+            else:
+                return
+
+        self.ruleset_funcs['variables'] = {}
+        self.ruleset_funcs['gui_update'] = self.root.update 
+
+        full_html_content = ""
+        
+        for i in range(num_runs):
+            base_text = roll_on_table_func(start_table, tables) 
+            final_text = resolve_table_tags_func(base_text, tables, self.ruleset_funcs) 
+            final_text = self.resolve_a_an_modifier(final_text)
+
+            full_html_content += f"<div class='result-block'>{final_text}</div>"
+            if i < num_runs - 1:
+                full_html_content += "<hr>"
+
+        final_html = f"""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="utf-8">
+            <title>Generator Output</title>
+            <style>
+                body {{ font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 40px; background-color: #f4f4f4; }}
+                .container {{ background-color: white; padding: 40px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); max-width: 800px; margin: 0 auto; }}
+                .result-block {{ margin-bottom: 20px; line-height: 1.6; }}
+                hr {{ border: 0; height: 1px; background: #ddd; margin: 30px 0; }}
+                table {{ border-collapse: collapse; width: 100%; margin-top: 10px; margin-bottom: 10px; }}
+                td, th {{ border: 1px solid #ddd; padding: 8px; text-align: left; }}
+                tr:nth-child(even) {{ background-color: #f9f9f9; }}
+                th {{ background-color: #4CAF50; color: white; }}
+                h1, h2, h3 {{ color: #333; }}
+                b {{ color: #444; }}
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                {full_html_content}
+            </div>
+        </body>
+        </html>
+        """
+
+        try:
+            with tempfile.NamedTemporaryFile('w', delete=False, suffix='.html', encoding='utf-8') as f:
+                url = 'file://' + f.name
+                f.write(final_html)
+            webbrowser.open(url)
+        except Exception as e:
+            messagebox.showerror("Browser Error", f"Could not open browser: {e}")
+
     # --- A/An Modifier Resolver ---
     def resolve_a_an_modifier(self, text):
         """
-        Replaces the '\a' modifier with 'a' or 'an' based on the following word, 
-        skipping any intervening spaces or HTML tags.
+        Replaces the '\a' modifier with 'a' or 'an' based on the following word.
         """
         VOWELS = "AEIOUaeiou"
 
         def final_substitute(match):
-            # Find the position right after the '\a' tag
             index = match.end()
             text_after_a = match.string[index:]
             
-            # Find the true start of the next word/text, skipping spaces and HTML tags
             i = 0
             while i < len(text_after_a):
                 char = text_after_a[i]
-                
                 if char.isspace():
                     i += 1
                     continue
-                    
                 if char == '<':
-                    # Skip entire HTML tag
                     tag_end = text_after_a.find('>', i)
                     if tag_end != -1:
                         i = tag_end + 1
                         continue
                     else:
-                        i += 1 # Malformed tag, continue
+                        i += 1
                         continue
-                
-                # Found the start of the next significant word/character
                 first_char = char
                 break
-                
-                i += 1
             else:
-                # Reached end of string
                 first_char = ''
 
-            # Determine replacement
             if first_char and first_char in VOWELS:
                 return "an"
             else:
                 return "a"
 
-        # Use re.sub to find all instances of \a
         text = re.sub(r'\\a', final_substitute, text)
         return text
 
     # --- UI & Helper Methods ---
                 
     def setup_output_tags(self):
-        """Defines the visual styles for the HTML tags for the output window, including table styles."""
+        """Defines the visual styles for the HTML tags for the output window."""
         base_font = "Arial"
         
         # Base Text Tags
@@ -316,7 +388,6 @@ class IPPInterface:
                                        rmargin=10,  
                                        background="#F9F9F9") 
         
-        # The 'td_cell' tag defines the appearance of each cell
         self.output_text.tag_configure("td_cell", 
                                        borderwidth=1, 
                                        relief=tk.RIDGE, 
@@ -401,7 +472,7 @@ class IPPInterface:
             if token.startswith("<") and token.endswith(">"):
                 tag_lower = token.lower()
                 
-                # --- Block and Separator Tags (P, BR, HR) ---
+                # --- Block and Separator Tags ---
                 if tag_lower == "<br>": self.output_text.insert(tk.END, "\n")
                 elif tag_lower == "<p>": self.output_text.insert(tk.END, "\n\n")
                 elif tag_lower == "<hr>": self.output_text.insert(tk.END, "\n" + "—" * 40 + "\n")
@@ -412,81 +483,60 @@ class IPPInterface:
                     self.in_table = True
                     self.output_text.insert(tk.END, "\n")
                     table_start_index = self.output_text.index(tk.END + "-1c")
-                    # Insert a wide placeholder to help the tag span correctly
                     self.output_text.insert(tk.END, " " * 80 + "\n") 
                     
                 elif tag_lower.startswith("<tr"):
                     if self.in_table:
-                        # Start a new row, ensuring a fresh line.
                         if table_start_index != self.output_text.index(tk.END + "-1c"):
-                             # Insert a newline only if the current row isn't immediately after <table>
                              self.output_text.insert(tk.END, "\n")
                              
-                # Check for start of <td> or <th> tag (handles attributes like colspan)
                 elif token.lower().startswith("<td") or token.lower().startswith("<th"):
                     is_header = token.lower().startswith("<th")
                     if self.in_table:
-                        
-                        # 1. Parse colspan attribute from the full token
                         colspan_match = re.search(r'colspan\s*=\s*["\']?(\d+)["\']?', token, re.IGNORECASE)
                         colspan_value = int(colspan_match.group(1)) if colspan_match else 1
                         
-                        # Insert a visual separator before the cell content
                         current_line_start = self.output_text.index("insert linestart")
                         current_pos = self.output_text.index("insert")
                         
-                        # If we aren't at the start of the line, we need a separator
                         if current_pos != current_line_start:
                              self.output_text.insert(tk.END, " | ")
 
-                        # 2. Apply extra visual padding for colspan
                         if colspan_value > 1:
-                            # Insert spaces per extra column spanned
                             self.output_text.insert(tk.END, " " * 5 * (colspan_value - 1))
                             
-                        # If it's a header, activate bold
                         if is_header: active_tags.add("bold")
-                            
-                        # Mark the start of the content inside the <td> tag
                         self.cell_content_start_index = self.output_text.index(tk.END)
                         
                 elif tag_lower == "</td>" or tag_lower == "</th>": 
                     if self.in_table and self.cell_content_start_index:
-                        # Apply the td_cell styling to everything since the last <td>
                         self.output_text.tag_add("td_cell", self.cell_content_start_index, self.output_text.index(tk.END))
-                        
-                        # If it was a header, deactivate bold (check against the closing tag)
                         if tag_lower == "</th>": active_tags.discard("bold")
-                            
-                        self.cell_content_start_index = None # Reset cell tracking
+                        self.cell_content_start_index = None 
                         
                 elif tag_lower == "</tr>":
                     if self.in_table:
-                        # Add some space after the row for better visual separation of rows
                         self.output_text.insert(tk.END, " \n") 
                         
                 elif tag_lower == "</table>":
                     if self.in_table:
                         self.in_table = False
-                        
-                        # Apply the 'table_border' tag to the entire block inserted since <table>
                         if table_start_index:
                             self.output_text.tag_add("table_border", table_start_index, self.output_text.index(tk.END))
                         self.output_text.insert(tk.END, "\n")
                         table_start_index = None
                         
                 # --- Text Formatting Tags ---
-                elif tag_lower.startswith("</"): # Closing tags
+                elif tag_lower.startswith("</"): 
                     tag_name = tag_lower[2:-1]
                     if tag_name in ["b", "i", "u", "h1", "h2", "h3", "red", "blue"]:
-                        # Convert simple tag names back to their full class names
                         full_tag_map = {"b": "bold", "i": "italic", "u": "underline", 
                                         "red": "red", "blue": "blue"}
                         full_tag_name = full_tag_map.get(tag_name, tag_name)
                         active_tags.discard(full_tag_name)
                         if full_tag_name.startswith("h"): self.output_text.insert(tk.END, "\n")
 
-                elif tag_lower.startswith("<"): # Opening tags
+                elif tag_lower.startswith("<"): 
                     tag_name = tag_lower[1:-1]
                     if tag_name == "b": active_tags.add("bold")
                     elif tag_name == "i": active_tags.add("italic")
@@ -499,10 +549,8 @@ class IPPInterface:
                 
             else:
                 self.output_text.insert(tk.END, token, tuple(active_tags))
-                
-        # Final newline after parsing the content
+        
         self.output_text.insert(tk.END, "\n")
-
 
     def clear_output(self):
         self.output_text.delete("1.0", tk.END)

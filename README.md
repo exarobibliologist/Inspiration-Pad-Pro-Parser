@@ -43,11 +43,13 @@ This Python script would like to eventually become the stand-in for Inspiration 
 - Implode uses a quote delimited modifier to determine the implosion characters to use. Examples: [@5 Table >> implode "<br>"] and [@5 Table >> implode ", "]
 - Support for floating-point and integer math
 - Support for floating-point and integer math [currently works in conjunction to dice rolls only]
-- Simple HTML Support (this turned out a lot more complicated than I originally anticipated)
-  - simple HTML [h1,h2,h3,b,i,u,p,br,hr,li]
+- Full support for HTML!!! Yes, FULL!! You could probably even use CSS if you wanted to!
+  - simple HTML implemented for when "Generate >>" and using Simple Output [h1,h2,h3,b,i,u,p,br,hr,li]
+  - full HTML supported, with tables, and images when using "Generate to Browser"
 - Text options for upper, lower, and proper
 - Add a/an English switch logic
 - {variable} assignment
+- Logic Systems added for if/then/else, ifnot/then/else, while/do, whilenot/do
 
 ### Mostly Complete
   - Table Output [table, td, tr] [implemented but currently broken in output viewer]
@@ -57,7 +59,6 @@ This Python script would like to eventually become the stand-in for Inspiration 
   - ! Deck picks
   - Set: variables
   - Define: variables
-  - If/Then/Else conditionals
   - \Escape\ logic
   - Headers and Footers
 - Sub-table Interactive Rerolls (click on a particular part of the output to reroll just that section.)
