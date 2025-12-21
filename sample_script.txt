@@ -26,6 +26,12 @@
 ##lowercase a word with >> lower
 ##CAPITAL LETTERS with >> upper
 ##Use \a to put either "a" or "an" depending on what comes next.
-##Use {$name ="number or dice roll"} to assign a variable to a name, then recall the variable with {$name}
+##Use {$name ='number or dice roll'} to assign a variable to a name.
+##(Single quotes are recommended so you can use variables inside logic tags!)
 ##Evaluate if statements [if "equation", "then", "else"]
 ##Evaluate if-not statements [ifnot "equation", "then", "else"]
+##Evaluate while statements [while "equation", "do this"]
+##Evaluate while-not statements [whilenot "equation", "do this"]
+
+Table: MuchWow
+{$val = '{1d20}'} Result: [ifnot "{$val} > 10", "You failed the roll with a {$val}!", "Success!"]

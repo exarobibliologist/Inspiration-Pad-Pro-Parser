@@ -218,8 +218,11 @@ class IPPInterface:
 
         self.output_text.delete("1.0", tk.END)
         
-        # Initialize the variables dictionary for this run
+        # --- INITIALIZE VARIABLES & HELPERS ---
         self.ruleset_funcs['variables'] = {}
+        
+        # NEW: Pass the UI update function so the engine can keep the window alive
+        self.ruleset_funcs['gui_update'] = self.root.update
 
         for i in range(num_runs):
             base_text = roll_on_table_func(start_table, tables) 

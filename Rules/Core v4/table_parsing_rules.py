@@ -39,10 +39,9 @@ def parse_tables(script_content):
 
 def evaluate_custom_condition(condition_str):
     """
-    Evaluates comparison logic for the [if] and [ifnot] tags.
-    Supported Operators: > (GT), < (LT), = (EQ), =/= (NEQ)
+    Evaluates comparison logic for [if], [ifnot], [while], [whilenot].
+    Supported: > (GT), < (LT), = (EQ), =/= (NEQ)
     """
-    # Check for the multi-character operator first to avoid partial matching with '='
     if "=/=" in condition_str:
         parts = condition_str.split("=/=")
         op = "!="
@@ -58,13 +57,11 @@ def evaluate_custom_condition(condition_str):
     else:
         return False
 
-    if len(parts) != 2:
-        return False
+    if len(parts) != 2: return False
     
     val1_raw = parts[0].strip()
     val2_raw = parts[1].strip()
 
-    # Attempt numeric comparison
     try:
         v1 = float(val1_raw)
         v2 = float(val2_raw)
@@ -73,7 +70,6 @@ def evaluate_custom_condition(condition_str):
         if op == ">": return v1 > v2
         if op == "<": return v1 < v2
     except ValueError:
-        # Fallback to string comparison
         if op == "==": return val1_raw == val2_raw
         if op == "!=": return val1_raw != val2_raw
         if op == ">": return val1_raw > val2_raw
@@ -84,25 +80,21 @@ def evaluate_custom_condition(condition_str):
 # --- 3. CORE ENGINE: Single Roll Function ---
 
 def roll_on_table(table_name, tables):
-    """Rolls a single time on the specified table, respecting weights."""
+    """Rolls a single time on the specified table."""
     if table_name not in tables: 
         return f"[Error: Table '{table_name}' not found]"
-        
     entries = tables[table_name]
     if not entries: 
         return "[Error: Table is empty]"
-        
     population = [e['text'] for e in entries]
     weights = [e['weight'] for e in entries]
-    
     return random.choices(population, weights=weights, k=1)[0]
 
 # --- 4. CORE ENGINE: Central Recursive Tag Resolver ---
 
 def resolve_table_tags(text, tables, helpers, recursion_depth=0):
     """
-    Recursively replaces tags. Prioritizes variables/math so logic gates
-    can evaluate numeric results.
+    Recursively replaces tags. Prioritizes variables/math, then Logic, then Tables.
     """
     if 'resolve_table_tags' not in helpers: 
         helpers['resolve_table_tags'] = resolve_table_tags
@@ -110,6 +102,10 @@ def resolve_table_tags(text, tables, helpers, recursion_depth=0):
     math_evaluator_func = helpers.get('math_evaluator')
     case_converter_func = helpers.get('case_converter')
     list_sorter_func = helpers.get('list_sorter')
+    
+    # Ensure variables dictionary exists in helpers to persist across recursions
+    if 'variables' not in helpers:
+        helpers['variables'] = {}
 
     if recursion_depth > 25: 
         return "[Error: Max recursion depth]" 
@@ -118,13 +114,89 @@ def resolve_table_tags(text, tables, helpers, recursion_depth=0):
         original_text = text
         
         # --- STEP 1: RESOLVE MATH/VARIABLES ---
-        # Run first so tags like {$val} are numbers before logic gates see them.
+        # This updates helpers['variables'] directly
         text = math_evaluator_func(text, tables, helpers)
         
         found_action = False
         
-        # --- STEP 2: IF/IFNOT LOGIC ---
-        # [if "condition", "then", "else"]
+        # --- STEP 2: LOGIC GATES (IF / IFNOT / WHILE / WHILENOT) ---
+
+        # A. [while "condition", "loop_content"]
+        while_pattern = r'\[while\s+"([^"]*)"\s*,\s*"([^"]*)"\]'
+        while_match = re.search(while_pattern, text, re.IGNORECASE)
+        if while_match and not found_action:
+            full_tag = while_match.group(0)
+            raw_condition = while_match.group(1)
+            loop_content_template = while_match.group(2)
+            
+            accumulated_output = []
+            loop_safety = 0
+            MAX_LOOPS = 1000
+            
+            while True:
+                # NEW. TRY THIS. Update the UI so it doesn't freeze!
+                if 'gui_update' in helpers:
+                    helpers['gui_update']()
+                # Resolve variables in the condition for THIS iteration using global helpers
+                # This ensures we see the latest value of {$rand}
+                current_condition_str = math_evaluator_func(raw_condition, tables, helpers)
+                
+                # Check logic
+                if not evaluate_custom_condition(current_condition_str):
+                    break 
+                
+                # Execute Loop Body
+                # We simply pass 'helpers' which contains the LIVE 'variables' dict.
+                # Any updates inside this call will stick for the next loop iteration.
+                step_output = resolve_table_tags(loop_content_template, tables, helpers, recursion_depth + 1)
+                
+                # The resolved output will contain the hardcoded numbers (e.g. "Rolled 9"),
+                # but we need to verify the math tags inside actually executed.
+                # Since math_evaluator runs first in resolve_table_tags, they should have.
+                
+                accumulated_output.append(step_output)
+                
+                loop_safety += 1
+                if loop_safety >= MAX_LOOPS:
+                    accumulated_output.append(f" [Error: Max loop limit ({MAX_LOOPS}) reached] ")
+                    break
+            
+            text = text.replace(full_tag, "".join(accumulated_output), 1)
+            found_action = True
+            continue
+
+        # B. [whilenot "condition", "loop_content"]
+        whilenot_pattern = r'\[whilenot\s+"([^"]*)"\s*,\s*"([^"]*)"\]'
+        whilenot_match = re.search(whilenot_pattern, text, re.IGNORECASE)
+        if whilenot_match and not found_action:
+            full_tag = whilenot_match.group(0)
+            raw_condition = whilenot_match.group(1)
+            loop_content_template = whilenot_match.group(2)
+            
+            accumulated_output = []
+            loop_safety = 0
+            MAX_LOOPS = 1000 
+            
+            while True:
+                current_condition_str = math_evaluator_func(raw_condition, tables, helpers)
+                
+                if evaluate_custom_condition(current_condition_str):
+                    break 
+                
+                # Pass 'helpers' (with live variables) to the recursion
+                step_output = resolve_table_tags(loop_content_template, tables, helpers, recursion_depth + 1)
+                accumulated_output.append(step_output)
+                
+                loop_safety += 1
+                if loop_safety >= MAX_LOOPS:
+                    accumulated_output.append(f" [Error: Max loop limit ({MAX_LOOPS}) reached] ")
+                    break
+            
+            text = text.replace(full_tag, "".join(accumulated_output), 1)
+            found_action = True
+            continue
+
+        # C. [if "condition", "then", "else"]
         if_pattern = r'\[if\s+"([^"]*)"\s*,\s*"([^"]*)"\s*,\s*"([^"]*)"\]'
         if_match = re.search(if_pattern, text, re.IGNORECASE)
         if if_match and not found_action:
@@ -137,11 +209,10 @@ def resolve_table_tags(text, tables, helpers, recursion_depth=0):
                 text = text.replace(full_tag, then_branch, 1)
             else:
                 text = text.replace(full_tag, else_branch, 1)
-            
             found_action = True
-            continue
+            continue 
 
-        # [ifnot "condition", "then", "else"]
+        # D. [ifnot "condition", "then", "else"]
         ifnot_pattern = r'\[ifnot\s+"([^"]*)"\s*,\s*"([^"]*)"\s*,\s*"([^"]*)"\]'
         ifnot_match = re.search(ifnot_pattern, text, re.IGNORECASE)
         if ifnot_match and not found_action:
@@ -150,12 +221,10 @@ def resolve_table_tags(text, tables, helpers, recursion_depth=0):
             then_branch = ifnot_match.group(2)
             else_branch = ifnot_match.group(3)
             
-            # Logic is inverted: if condition is FALSE, do 'then'
             if not evaluate_custom_condition(condition_str):
                 text = text.replace(full_tag, then_branch, 1)
             else:
                 text = text.replace(full_tag, else_branch, 1)
-            
             found_action = True
             continue
 
@@ -216,8 +285,7 @@ def resolve_table_tags(text, tables, helpers, recursion_depth=0):
             open_count = 1; first_close = -1; i = last_open + 2
             while i < len(text):
                 if text[i:i+2] == '[|': open_count += 1; i += 2
-                elif text[i:i+2] == '||': # This seems to be a placeholder from your original logic
-                    i += 2
+                elif text[i:i+2] == '||': i += 2
                 elif text[i:i+2] == '|]':
                     open_count -= 1
                     if open_count == 0: first_close = i; break
