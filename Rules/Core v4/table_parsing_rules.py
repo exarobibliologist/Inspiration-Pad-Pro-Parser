@@ -107,14 +107,14 @@ def resolve_table_tags(text, tables, helpers, recursion_depth=0):
     if 'variables' not in helpers:
         helpers['variables'] = {}
 
-    if recursion_depth > 25: 
+    # This is the "Brake" for recursion (IF/IFNOT nested calls). Greatly decreased the brake sensitivity for right now.
+    if recursion_depth > 500: 
         return "[Error: Max recursion depth]" 
         
     while True:
         original_text = text
         
         # --- STEP 1: RESOLVE MATH/VARIABLES ---
-        # This updates helpers['variables'] directly
         text = math_evaluator_func(text, tables, helpers)
         
         found_action = False
@@ -131,34 +131,26 @@ def resolve_table_tags(text, tables, helpers, recursion_depth=0):
             
             accumulated_output = []
             loop_safety = 0
-            MAX_LOOPS = 1000
+            
+            # --- MODIFIED: MUCH MUCH TIGHTER BRAKE FOR WHILE LOOPS ---
+            MAX_LOOPS = 20 
+            # -----------------------------------------------
             
             while True:
-                # NEW. TRY THIS. Update the UI so it doesn't freeze!
                 if 'gui_update' in helpers:
                     helpers['gui_update']()
-                # Resolve variables in the condition for THIS iteration using global helpers
-                # This ensures we see the latest value of {$rand}
+
                 current_condition_str = math_evaluator_func(raw_condition, tables, helpers)
                 
-                # Check logic
                 if not evaluate_custom_condition(current_condition_str):
                     break 
                 
-                # Execute Loop Body
-                # We simply pass 'helpers' which contains the LIVE 'variables' dict.
-                # Any updates inside this call will stick for the next loop iteration.
                 step_output = resolve_table_tags(loop_content_template, tables, helpers, recursion_depth + 1)
-                
-                # The resolved output will contain the hardcoded numbers (e.g. "Rolled 9"),
-                # but we need to verify the math tags inside actually executed.
-                # Since math_evaluator runs first in resolve_table_tags, they should have.
-                
                 accumulated_output.append(step_output)
                 
                 loop_safety += 1
                 if loop_safety >= MAX_LOOPS:
-                    accumulated_output.append(f" [Error: Max loop limit ({MAX_LOOPS}) reached] ")
+                    accumulated_output.append(f" [Error: Loop limit ({MAX_LOOPS}) exceeded] ")
                     break
             
             text = text.replace(full_tag, "".join(accumulated_output), 1)
@@ -175,7 +167,10 @@ def resolve_table_tags(text, tables, helpers, recursion_depth=0):
             
             accumulated_output = []
             loop_safety = 0
-            MAX_LOOPS = 1000 
+            
+            # --- MODIFIED: TIGHTER BRAKE FOR WHILENOT LOOPS ---
+            MAX_LOOPS = 20 
+            # --------------------------------------------------
             
             while True:
                 current_condition_str = math_evaluator_func(raw_condition, tables, helpers)
@@ -183,13 +178,12 @@ def resolve_table_tags(text, tables, helpers, recursion_depth=0):
                 if evaluate_custom_condition(current_condition_str):
                     break 
                 
-                # Pass 'helpers' (with live variables) to the recursion
                 step_output = resolve_table_tags(loop_content_template, tables, helpers, recursion_depth + 1)
                 accumulated_output.append(step_output)
                 
                 loop_safety += 1
                 if loop_safety >= MAX_LOOPS:
-                    accumulated_output.append(f" [Error: Max loop limit ({MAX_LOOPS}) reached] ")
+                    accumulated_output.append(f" [Error: Loop limit ({MAX_LOOPS}) exceeded] ")
                     break
             
             text = text.replace(full_tag, "".join(accumulated_output), 1)
