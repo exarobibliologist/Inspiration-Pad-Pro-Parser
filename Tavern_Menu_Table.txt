@@ -1,12 +1,17 @@
+Table: MasterController
+Reset:
+<table><tr><td>[@5 Menu >> implode "</td><td>"]</tr></table>
+
 Table: Menu
 <h1>[@MasterTavernName]</h1><h2>Breakfast Menu = {$costofbreakfast= "{{1d10}+10}"}sp</h2>[@BreakfastMenu]<br><h2>Dinner Menu {$costofdinner= "{{1d10}+10}"}sp</h2>[@DinnerMenu]<br>
 
 Table: MasterTavernName
-[|[@Owner_Name >> proper]'s|The|] [@TavernsA] [@TavernsB] [|Inn|Tavern|Restaurant|Tavern and Inn| | | | |]
-[|[@Owner_Name >> proper]'s|The|] House of [@TavernsC]
-[|[@Owner_Name >> proper]'s|The|] [@TavernsA] House of [@TavernsC]
-[|[@Owner_Name >> proper]'s|The|] [|[@TavernsA] [@TavernsB]|[@TavernsB] [@TavernsC]|]
-[|[@Owner_Name >> proper]'s|The|] [@TavernsB]
+[|The|[@Owner_Name >> proper]'s|] [@TavernsA] [@TavernsB] [|Inn|Tavern|Restaurant|Tavern and Inn| | | | |]
+[|The|[@Owner_Name >> proper]'s|] House of [@TavernsC]
+[|The|[@Owner_Name >> proper]'s|] [@TavernsA] House of [@TavernsC]
+[|The|[@Owner_Name >> proper]'s|] [@TavernsA] [@TavernsB]
+[|The|[@Owner_Name >> proper]'s|] [@TavernsB] [@TavernsC]
+[|The|[@Owner_Name >> proper]'s|] [@TavernsB]
 [@TavernsC] and [@TavernsC]
 
 Table: TavernsA
@@ -171,12 +176,13 @@ Whisky
 Venison
 
 Table: BreakfastMenu
-</h3>[@5 Breakfast >> sort >> implode "<br>"]<br><h3>Pick {$breaksides = '{2d2}'} side dishes for {floor({{$costofbreakfast} / {$breaksides}})}sp</h3>[@5 BreakfastSides >> sort >> implode "<br>"]
+</h3>[!5 Breakfast >> sort >> implode "<br>"]<br><h3>Pick {$breaksides = '{2d2}'} side dishes for {floor({{$costofbreakfast} / {$breaksides}})}sp</h3>[!5 BreakfastSides >> sort >> implode "<br>"]
 
 Table: DinnerMenu
-</h3>[@5 Dinner >> sort >> implode "<br>"]<br><h3>Pick {$dinsides = '{2d2}'} side dishes for {floor({{$costofdinner} / {$dinsides}})}sp</h3>[@5 DinnerSides >> sort >> implode "<br>"]
+</h3>[!5 Dinner >> sort >> implode "<br>"]<br><h3>Pick {$dinsides = '{2d2}'} side dishes for {floor({{$costofdinner} / {$dinsides}})}sp</h3>[!5 DinnerSides >> sort >> implode "<br>"]
 
 Table: Breakfast
+Reset:
 [|Scrambled|Fried|Poached|Hard Boiled|Soft Boiled|Deviled|] Eggs [|with herbs|with cheese| | | |]
 [|Scrambled|Fried|Poached|Hard Boiled|Soft Boiled|Deviled|] [@NounFaeCreatures] Eggs
 Eggs Over-[|Easy|Medium|Hard|] [|with herbs|with cheese| | | |]
@@ -195,6 +201,7 @@ Steak, [|Rare|Medium-Rare|Medium|Medium-Well|Well Done|]
 [|Baked|Fried|Blood|] Pudding [|sweetened|spiced|]
 
 Table: BreakfastSides
+Reset:
 5: Leftover [@Dinner]
 [|Crispy|Thick-cut|Soggy|Chewy|] Bacon
 [|Sweet|Mild|Spicy|Hot|Pickled|Deer|] Sausage
@@ -208,6 +215,7 @@ Table: BreakfastSides
 [|Fresh|Dried|Preserved|Feywild|] [|berries|apples|pears|melons|]
 
 Table: Dinner
+Reset:
 [@DinnerPrep] [@MealAnimal] [|Stew|Pie|Cutlets|Skillet|Slabs|Shanks|Nuggets|Haunch|Roast|Fillet|Cutlets|Strips|Quarters|Kebabs|Tenderloin|]
 [@MealAnimal] [|and Root-Veg Mash|Ribs|Jerky Platter|Bites|Rollups|]
 Thick-Cut [@MealAnimal] Chops
@@ -283,6 +291,7 @@ Wolf
 Wyvern
 
 Table: DinnerSides
+Reset:
 15: Leftover [@Breakfast]
 [|Soft|Steamed|Boiled|Pan-Fried|Herbed|Stuffed|] Dumplings [|with gravy|with herbs|in broth|]
 [|Long|Short|Curly|Spiral|Handmade|] Pasta [|with butter|with herbs|with garlic sauce|with gravy|]
@@ -773,3 +782,18 @@ zylphia
 cecilia
 cordelia
 lavinia
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
