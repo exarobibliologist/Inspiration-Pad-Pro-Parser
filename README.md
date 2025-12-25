@@ -50,22 +50,21 @@ This Python script would like to eventually become the stand-in for Inspiration 
 - Add a/an English switch logic
 - {variable} assignment
 - Logic Systems added for if/then/else, ifnot/then/else, while/do, whilenot/do
+- [!Deck] and [!5 Deck] picks
+  - Reset: to reset tables for additional deck picks
+
 
 ### Mostly Complete
   - Table Output [table, td, tr] [implemented but currently broken in output viewer]
 
 ### Future Goals
 - Add new logic syntax to IPP for better and easier random scripts
-  - ! Deck picks
   - Set: variables
   - Define: variables
   - \Escape\ logic
   - Headers and Footers
 - Sub-table Interactive Rerolls (click on a particular part of the output to reroll just that section.)
-- Full HTML support
-  - Table Output
-  - Images
-  - CSS Support?
+- Custom CSS Support?
 - Export Options
   - Export to Printer
   - Export to PNG

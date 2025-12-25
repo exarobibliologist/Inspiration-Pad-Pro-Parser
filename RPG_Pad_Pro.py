@@ -11,7 +11,7 @@ import tempfile
 class IPPInterface:
     def __init__(self, root, base_dir):
         self.root = root
-        self.root.title("RPG Pad Pro Parser")
+        self.root.title("RPG Pad Pro, version 4.3.15.14")
         
         self.root.state('zoomed') 
 
@@ -225,12 +225,15 @@ class IPPInterface:
 
         self.output_text.delete("1.0", tk.END)
         
-        # Initialize the variables dictionary for this run
-        self.ruleset_funcs['variables'] = {}
         # Pass UI update to prevent freezing
         self.ruleset_funcs['gui_update'] = self.root.update 
 
         for i in range(num_runs):
+            # --- INITIALIZE FRESH STATE FOR EACH RUN ---
+            self.ruleset_funcs['variables'] = {}
+            self.ruleset_funcs['deck_state'] = {} 
+            # -------------------------------------------
+
             base_text = roll_on_table_func(start_table, tables) 
             
             # --- Resolve Tags ---
@@ -275,12 +278,17 @@ class IPPInterface:
             else:
                 return
 
-        self.ruleset_funcs['variables'] = {}
+        # Pass UI update function
         self.ruleset_funcs['gui_update'] = self.root.update 
 
         full_html_content = ""
         
         for i in range(num_runs):
+            # --- INITIALIZE FRESH STATE FOR EACH RUN ---
+            self.ruleset_funcs['variables'] = {}
+            self.ruleset_funcs['deck_state'] = {} 
+            # -------------------------------------------
+
             base_text = roll_on_table_func(start_table, tables) 
             final_text = resolve_table_tags_func(base_text, tables, self.ruleset_funcs) 
             final_text = self.resolve_a_an_modifier(final_text)
@@ -297,7 +305,7 @@ class IPPInterface:
             <title>Generator Output</title>
             <style>
                 body {{ font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 40px; background-color: #f4f4f4; }}
-                .container {{ background-color: white; padding: 40px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); max-width: 800px; margin: 0 auto; }}
+                .container {{ background-color: white; padding: 40px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); max-width: 20000px; margin: 0 auto; }}
                 .result-block {{ margin-bottom: 20px; line-height: 1.6; }}
                 hr {{ border: 0; height: 1px; background: #ddd; margin: 30px 0; }}
                 table {{ border-collapse: collapse; width: 100%; margin-top: 10px; margin-bottom: 10px; }}

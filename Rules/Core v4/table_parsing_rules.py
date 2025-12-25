@@ -21,6 +21,14 @@ def parse_tables(script_content):
             continue
             
         if current_table_name:
+            # --- CHECK FOR RESET COMMAND ---
+            # If "Reset:" is found, we add a special marker.
+            # This tells the deck logic to reshuffle this table every time it is called.
+            if line.lower() == "reset:":
+                tables[current_table_name].append({"text": "__RESET__", "weight": 0})
+                continue
+            # -------------------------------
+
             weight = 1
             text_content = line
             
@@ -86,9 +94,21 @@ def roll_on_table(table_name, tables):
     entries = tables[table_name]
     if not entries: 
         return "[Error: Table is empty]"
-    population = [e['text'] for e in entries]
-    weights = [e['weight'] for e in entries]
-    return random.choices(population, weights=weights, k=1)[0]
+    
+    # --- FILTER RESET MARKER ---
+    # Ensure standard rolls don't accidentally pick the invisible Reset marker
+    valid_entries = [e for e in entries if e['text'] != "__RESET__"]
+    
+    if not valid_entries:
+        return "[Error: Table has no valid entries]"
+
+    population = [e['text'] for e in valid_entries]
+    weights = [e['weight'] for e in valid_entries]
+    
+    try:
+        return random.choices(population, weights=weights, k=1)[0]
+    except IndexError:
+        return "[Error: Table weights invalid]"
 
 # --- 4. CORE ENGINE: Central Recursive Tag Resolver ---
 
@@ -103,11 +123,9 @@ def resolve_table_tags(text, tables, helpers, recursion_depth=0):
     case_converter_func = helpers.get('case_converter')
     list_sorter_func = helpers.get('list_sorter')
     
-    # Ensure variables dictionary exists in helpers to persist across recursions
-    if 'variables' not in helpers:
-        helpers['variables'] = {}
+    if 'variables' not in helpers: helpers['variables'] = {}
+    if 'deck_state' not in helpers: helpers['deck_state'] = {} # Track removed items here
 
-    # This is the "Brake" for recursion (IF/IFNOT nested calls). Greatly decreased the brake sensitivity for right now.
     if recursion_depth > 500: 
         return "[Error: Max recursion depth]" 
         
@@ -128,34 +146,22 @@ def resolve_table_tags(text, tables, helpers, recursion_depth=0):
             full_tag = while_match.group(0)
             raw_condition = while_match.group(1)
             loop_content_template = while_match.group(2)
-            
             accumulated_output = []
             loop_safety = 0
-            
-            # --- MODIFIED: MUCH MUCH TIGHTER BRAKE FOR WHILE LOOPS ---
             MAX_LOOPS = 20 
-            # -----------------------------------------------
             
             while True:
-                if 'gui_update' in helpers:
-                    helpers['gui_update']()
-
+                if 'gui_update' in helpers: helpers['gui_update']()
                 current_condition_str = math_evaluator_func(raw_condition, tables, helpers)
-                
-                if not evaluate_custom_condition(current_condition_str):
-                    break 
-                
+                if not evaluate_custom_condition(current_condition_str): break 
                 step_output = resolve_table_tags(loop_content_template, tables, helpers, recursion_depth + 1)
                 accumulated_output.append(step_output)
-                
                 loop_safety += 1
                 if loop_safety >= MAX_LOOPS:
                     accumulated_output.append(f" [Error: Loop limit ({MAX_LOOPS}) exceeded] ")
                     break
-            
             text = text.replace(full_tag, "".join(accumulated_output), 1)
-            found_action = True
-            continue
+            found_action = True; continue
 
         # B. [whilenot "condition", "loop_content"]
         whilenot_pattern = r'\[whilenot\s+"([^"]*)"\s*,\s*"([^"]*)"\]'
@@ -164,31 +170,21 @@ def resolve_table_tags(text, tables, helpers, recursion_depth=0):
             full_tag = whilenot_match.group(0)
             raw_condition = whilenot_match.group(1)
             loop_content_template = whilenot_match.group(2)
-            
             accumulated_output = []
             loop_safety = 0
-            
-            # --- MODIFIED: TIGHTER BRAKE FOR WHILENOT LOOPS ---
             MAX_LOOPS = 20 
-            # --------------------------------------------------
             
             while True:
                 current_condition_str = math_evaluator_func(raw_condition, tables, helpers)
-                
-                if evaluate_custom_condition(current_condition_str):
-                    break 
-                
+                if evaluate_custom_condition(current_condition_str): break 
                 step_output = resolve_table_tags(loop_content_template, tables, helpers, recursion_depth + 1)
                 accumulated_output.append(step_output)
-                
                 loop_safety += 1
                 if loop_safety >= MAX_LOOPS:
                     accumulated_output.append(f" [Error: Loop limit ({MAX_LOOPS}) exceeded] ")
                     break
-            
             text = text.replace(full_tag, "".join(accumulated_output), 1)
-            found_action = True
-            continue
+            found_action = True; continue
 
         # C. [if "condition", "then", "else"]
         if_pattern = r'\[if\s+"([^"]*)"\s*,\s*"([^"]*)"\s*,\s*"([^"]*)"\]'
@@ -198,13 +194,9 @@ def resolve_table_tags(text, tables, helpers, recursion_depth=0):
             condition_str = if_match.group(1)
             then_branch = if_match.group(2)
             else_branch = if_match.group(3)
-            
-            if evaluate_custom_condition(condition_str):
-                text = text.replace(full_tag, then_branch, 1)
-            else:
-                text = text.replace(full_tag, else_branch, 1)
-            found_action = True
-            continue 
+            if evaluate_custom_condition(condition_str): text = text.replace(full_tag, then_branch, 1)
+            else: text = text.replace(full_tag, else_branch, 1)
+            found_action = True; continue 
 
         # D. [ifnot "condition", "then", "else"]
         ifnot_pattern = r'\[ifnot\s+"([^"]*)"\s*,\s*"([^"]*)"\s*,\s*"([^"]*)"\]'
@@ -214,26 +206,20 @@ def resolve_table_tags(text, tables, helpers, recursion_depth=0):
             condition_str = ifnot_match.group(1)
             then_branch = ifnot_match.group(2)
             else_branch = ifnot_match.group(3)
-            
-            if not evaluate_custom_condition(condition_str):
-                text = text.replace(full_tag, then_branch, 1)
-            else:
-                text = text.replace(full_tag, else_branch, 1)
-            found_action = True
-            continue
+            if not evaluate_custom_condition(condition_str): text = text.replace(full_tag, then_branch, 1)
+            else: text = text.replace(full_tag, else_branch, 1)
+            found_action = True; continue
 
-        # --- STEP 3: HANDLE TABLE CALLS: [@Table] ---
-        table_match = re.search(r"\[@(.*?)\]", text)
+        # --- STEP 3: HANDLE TABLE CALLS: [@Table] and [!Table] ---
+        # Matches [@Table], [!Table], [@5 Table], [!5 Table]
+        table_match = re.search(r"\[([@!])(.*?)\]", text)
         if table_match and not found_action:
-            full_tag = table_match.group(0) 
-            content = table_match.group(1).strip()
+            full_tag = table_match.group(0)
+            operator = table_match.group(1)  # '@' (Standard) or '!' (Deck)
+            content = table_match.group(2).strip()
             
             # Modifier Parsing
-            case_modifier = None
-            separator = ", "
-            sort_flag = False 
-            implode_applied = False
-            
+            case_modifier = None; separator = ", "; sort_flag = False; implode_applied = False
             while True:
                 found_modifier = False
                 implode_match = re.search(r'\s+>>\s+implode\s+"(.*?)"$', content, re.IGNORECASE)
@@ -251,7 +237,7 @@ def resolve_table_tags(text, tables, helpers, recursion_depth=0):
                 if not found_modifier: break
 
             # Multi-roll parsing
-            count = 1
+            count = 1  # Default to 1 (Handles [!Table] case automatically)
             table_ref = content
             match_multi_num = re.match(r"^(\d+)\s+(.*)", content)
             if match_multi_num:
@@ -260,9 +246,39 @@ def resolve_table_tags(text, tables, helpers, recursion_depth=0):
             
             if table_ref in tables:
                 results = []
-                for _ in range(count):
-                    raw_res = roll_on_table(table_ref, tables)
-                    results.append(resolve_table_tags(raw_res, tables, helpers, recursion_depth + 1))
+                
+                # --- DECK LOGIC (Operator !) ---
+                if operator == '!':
+                    # Check for Reset Flag
+                    has_reset_flag = any(e['text'] == '__RESET__' for e in tables[table_ref])
+                    
+                    # Initialize deck if missing OR if Reset flag is present (auto-reshuffle on call)
+                    if table_ref not in helpers['deck_state'] or has_reset_flag:
+                        valid_items = [e for e in tables[table_ref] if e['text'] != "__RESET__"]
+                        expanded_deck = []
+                        for item in valid_items:
+                            for _ in range(item['weight']):
+                                expanded_deck.append(item['text'])
+                        helpers['deck_state'][table_ref] = expanded_deck
+
+                    current_deck = helpers['deck_state'][table_ref]
+                    
+                    for _ in range(count):
+                        if not current_deck:
+                            results.append("[Error: Deck depleted]")
+                            break
+                        
+                        # Draw and remove
+                        pick = random.choice(current_deck)
+                        current_deck.remove(pick)
+                        
+                        results.append(resolve_table_tags(pick, tables, helpers, recursion_depth + 1))
+
+                # --- STANDARD LOGIC (Operator @) ---
+                else:
+                    for _ in range(count):
+                        raw_res = roll_on_table(table_ref, tables)
+                        results.append(resolve_table_tags(raw_res, tables, helpers, recursion_depth + 1))
                 
                 if sort_flag: results = list_sorter_func(results)
                 final_result = separator.join(results)

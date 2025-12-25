@@ -19,6 +19,8 @@
 ##In-line random pick: [|Happy|Sad|Angry|Confused|]
 ##[@PickMe] will draw a random item from the PickMe table
 ##[@{1d20} PickMe] will roll a 1d20 and draw that many random items from the PickMe table
+##[!{1d20} PickMe] will roll a 1d20 and draw that many random items from the PickMe table, removing them so they can't be drawn again later.
+##Use Reset: to reset a table so all the options may be drawn from again
 ##{1d[@dietype]} is a nested dice roll. It picks a random number from the dietype table, and uses it to roll a dice with that many sides.
 ##[@5 Table >> sort] will pick multiple items from a table and sort them numerically or alphabetically before output.
 ##To pick multiple items from a table and separate each pick with a comma, use implode (Put delimiters in quotes): [@4 Table >> sort >> implode ", "]
