@@ -176,10 +176,10 @@ Whisky
 Venison
 
 Table: BreakfastMenu
-</h3>[!5 Breakfast >> sort >> implode "<br>"]<br><h3>Pick {$breaksides = '{2d2}'} side dishes for {floor({{$costofbreakfast} / {$breaksides}})}sp</h3>[!5 BreakfastSides >> sort >> implode "<br>"]
+</h3>[!5 Breakfast >> sort >> implode "<br>"]<br><h3>Pick {$breaksides = '{2d2}'} side dishes for {floor({{$costofbreakfast} / {$breaksides}})}sp each</h3>[!5 BreakfastSides >> sort >> implode "<br>"]
 
 Table: DinnerMenu
-</h3>[!5 Dinner >> sort >> implode "<br>"]<br><h3>Pick {$dinsides = '{2d2}'} side dishes for {floor({{$costofdinner} / {$dinsides}})}sp</h3>[!5 DinnerSides >> sort >> implode "<br>"]
+</h3>[!5 Dinner >> sort >> implode "<br>"]<br><h3>Pick {$dinsides = '{2d2}'} side dishes for {floor({{$costofdinner} / {$dinsides}})}sp each</h3>[!5 DinnerSides >> sort >> implode "<br>"]
 
 Table: Breakfast
 Reset:
